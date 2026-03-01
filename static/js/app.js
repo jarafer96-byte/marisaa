@@ -2693,7 +2693,7 @@ function ajustarPosicionesPaneles() {
     const margenAdicional = 19;
     const desplazamientoArriba = -20;
     const topCalc = alturaBarra + alturaGrupos + margenAdicional + desplazamientoArriba;
-    panelSub.style.top = topCalc + 'px';
+    panelSub.style.top = '92px';
     panelSub.style.position = 'fixed';
     panelSub.style.left = '0';
     panelSub.style.right = '0';
