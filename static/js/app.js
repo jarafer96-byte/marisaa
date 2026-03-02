@@ -552,11 +552,8 @@ document.getElementById("tallesProd").addEventListener("input", function() {
   }
 });
 function renderizarProductos(productos) {
-  console.log("🎨 Renderizando productos:", productos.length);
-  
   const cont = document.getElementById("productos");
   if (!cont) {
-    console.warn("⚠️ No se encontró el contenedor #productos");
     return;
   }
   
@@ -571,8 +568,6 @@ function renderizarProductos(productos) {
       card.classList.add("show");
     }, 50);
   });
-  
-  console.log("✅ " + productos.length + " productos renderizados");
 }
 function cargarProductoCompletoParaEditar(id_base) {
   const producto = window.todosLosProductos?.find(p => p.id_base === id_base);
