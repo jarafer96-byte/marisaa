@@ -2023,21 +2023,16 @@ function eliminarDelCarrito(id_base, talle, event) {
 }
     
 function mostrarSubgrupo(subgrupo, event) {
-  console.log("🟩 mostrarSubgrupo llamada con:", subgrupo);
-
   const grupoActivoBtn = document.querySelector('.btn-grupo.active');
   const grupoActivo = grupoActivoBtn ? grupoActivoBtn.textContent.trim() : null;
-  console.log("🎯 Grupo activo detectado:", grupoActivo);
 
   if (!grupoActivo) {
-    console.warn("⚠️ No hay grupo activo para mostrar subgrupo:", subgrupo);
     return;
   }
 
   document.querySelectorAll('.btn-subgrupo').forEach(btn => btn.classList.remove('active'));
   if (event?.target) {
     event.target.classList.add('active');
-    console.log("👉 Botón subgrupo marcado:", event.target.textContent);
   }
 
   const grupoCanon = String(grupoActivo).trim();
@@ -2045,18 +2040,8 @@ function mostrarSubgrupo(subgrupo, event) {
 
   window.currentGrupo = grupoCanon.toLowerCase();
   window.currentSub = subCanon.toLowerCase();
-  console.log("📌 Estado canónico actualizado:", { currentGrupo: window.currentGrupo, currentSub: window.currentSub });
 
-  console.log("➡️ Llamando a filtrarSubcategoria con:", { grupoCanon, subCanon });
   filtrarSubcategoria(grupoCanon, subCanon);
-
-  const cont = document.getElementById("productos");
-  if (cont) {
-    console.log("📥 Hijos actuales en #productos después de mostrarSubgrupo:", cont.children.length);
-    console.log("🧩 HTML actual de #productos:", cont.innerHTML.slice(0, 300) + "...");
-    const style = window.getComputedStyle(cont);
-    console.log("👁️ Estilo de #productos:", { display: style.display, visibility: style.visibility });
-  }
 }
 window.mostrarSubgrupo = mostrarSubgrupo;
 
