@@ -192,7 +192,6 @@ body.container.py-5.modo-oscuro {
     visibility: visible !important;
     color: white !important;
     background-color: rgba(0,0,0,0.5) !important;
-    display: block !important;
     font-size: 16px !important;
     line-height: 1.2 !important;
     height: auto !important;
