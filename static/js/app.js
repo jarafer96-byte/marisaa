@@ -1610,27 +1610,15 @@ if (window.modoAdmin) {
 
 function renderPagina(pagina, productosFiltrados) {
   const cont = document.getElementById("productos");
-  if (!cont) return;
-  cont.innerHTML = "";
+  totalPaginas = Math.ceil(productosFiltrados.length / itemsPorPagina);
   const inicio = (pagina - 1) * itemsPorPagina;
   const fin = inicio + itemsPorPagina;
   const productosPagina = productosFiltrados.slice(inicio, fin);
-  
-  alert("1. productosPagina length: " + productosPagina.length + " ¿es array? " + Array.isArray(productosPagina));
-
-  for (let i = 0; i < productosPagina.length; i++) {
-    try {
-      const p = productosPagina[i];
-      alert("2. Procesando producto índice " + i + ": " + p.nombre);
-      const card = renderProducto(p);
-      cont.appendChild(card);
-      alert("3. Producto agregado al DOM: " + p.nombre);
-    } catch (e) {
-      alert("❌ Error con producto " + p.nombre + ": " + e.message);
-    }
-  }
-
-  alert("4. Bucle terminado, hijos en contenedor: " + cont.children.length);
+  cont.innerHTML = "";    
+  productosPagina.forEach((p, index) => {
+    const esLCP = (pagina === 1 && index === 0);
+    cont.appendChild(renderProducto(p, esLCP));
+  });
 }
 
 
