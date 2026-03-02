@@ -2580,11 +2580,8 @@ function ajustarPosicionesPaneles() {
   const barraNav = document.querySelector('.barra-navegacion');
 
   if (!panelGrupos || !panelSub) {
-    console.warn("⚠️ No existen paneles en el DOM");
     return;
   }
-
-  console.log("🔧 ajustando posiciones de paneles...");
 
   if (!panelGrupos.classList.contains('oculta')) {
     const alturaBarra = barraNav ? barraNav.offsetHeight : 0;
@@ -2592,7 +2589,6 @@ function ajustarPosicionesPaneles() {
     panelGrupos.style.position = 'fixed';
     panelGrupos.style.left = '0';
     panelGrupos.style.right = '0';
-    console.log("📐 Panel grupos → top:", panelGrupos.style.top, "alturaBarra:", alturaBarra);
   }
 
   if (!panelSub.classList.contains('oculta')) {
@@ -2605,22 +2601,12 @@ function ajustarPosicionesPaneles() {
     panelSub.style.position = 'fixed';
     panelSub.style.left = '0';
     panelSub.style.right = '0';
-    console.log("📐 Panel subcategorias → top:", panelSub.style.top, 
-                "alturaBarra:", alturaBarra, "alturaGrupos:", alturaGrupos);
   } else {
     panelSub.style.top = '';
-    console.log("📂 Panel subcategorias oculto");
   }
-
-  const styleGrupos = window.getComputedStyle(panelGrupos);
-  const styleSub = window.getComputedStyle(panelSub);
-  console.log("👁️ Estilo panelGrupos:", { display: styleGrupos.display, top: styleGrupos.top });
-  console.log("👁️ Estilo panelSub:", { display: styleSub.display, top: styleSub.top });
 }
     
 function ordenarGrupo(valor) {
-  console.log("🔄 ordenarGrupo llamada con:", valor);
-
   const cont = document.getElementById("productos");
   if (!cont) return;
 
@@ -2637,7 +2623,6 @@ function ordenarGrupo(valor) {
     const pb = Number(b.precio) || 0;
     return valor === "asc" ? pa - pb : pb - pa;
   });
-  console.log("📊 Productos ordenados:", valor, productosFiltrados);
 
   cont.innerHTML = "";
 
@@ -2655,13 +2640,10 @@ function ordenarGrupo(valor) {
 
     requestAnimationFrame(() => card.classList.add("show"));
     setTimeout(() => card.classList.remove("fade-reorder"), 50);
-
-    console.log("🛒 Card insertada en subgrupo:", p.nombre);
   });
 
   grupoDiv.appendChild(subDiv);
   cont.appendChild(grupoDiv);
-  console.log("✅ Bloque renderizado en ordenarGrupo, hijos finales:", cont.children.length);
 }
 
 window.ordenarGrupo = ordenarGrupo;
