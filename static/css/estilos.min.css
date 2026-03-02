@@ -175,12 +175,3 @@ body.container.py-5.modo-oscuro {
 .fotos-adicionales img:hover { transform: scale(1.2); z-index: 10; position: relative; }  
 
 
-@media (max-width: 768px) {
-  .card-producto,
-  .card-producto * {
-    opacity: 1 !important;
-    visibility: visible !important;
-    display: block !important;
-    color: white !important;
-  }
-}
