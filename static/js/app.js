@@ -1772,6 +1772,9 @@ function mostrarGrupo(nombre, event, auto = false) {
     p => String(p.grupo || "").toLowerCase() === grupoCanon.toLowerCase()
   );
 
+   // 🔍 ALERTA DE DEPURACIÓN
+  alert("Grupo: " + nombre + " - Productos: " + productosGrupo.length);
+    
   const subcategorias = [...new Set(
     productosGrupo.map(p => p.subgrupo).filter(s => s && String(s).toLowerCase() !== 'general')
   )];
