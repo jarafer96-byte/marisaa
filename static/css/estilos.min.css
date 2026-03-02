@@ -196,7 +196,6 @@ body.container.py-5.modo-oscuro {
     line-height: 1.2 !important;
     height: auto !important;
     min-height: 20px !important;
-    overflow: visible !important;
     transform: none !important;
     transition: none !important;
   }
