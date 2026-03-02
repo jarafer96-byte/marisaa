@@ -1,3 +1,4 @@
+console.log = function() {};
 const configWhatsApp = window.cliente?.whatsapp;
 const email = window.cliente?.email;
 const URL_BACKEND = "https://mpagina.onrender.com";
@@ -1336,18 +1337,12 @@ document.getElementById("btnConfirmarProd").addEventListener("click", async () =
       const productoExistente = window.todosLosProductos?.find(p => p.id_base === window.productoEditandoId);
       if (productoExistente) {
         precioViejo = parseFloat(productoExistente.precio) || 0;
-        console.log(`💰 Precio anterior encontrado: $${precioViejo}`);
         const precioNuevo = parseFloat(document.getElementById("precioProd").value);
         
         if (!isNaN(precioNuevo) && precioViejo > precioNuevo) {
           precioAnteriorParaEnviar = precioViejo;
-          console.log(`🔥 OFERTA DETECTADA: $${precioViejo} → $${precioNuevo} (Ahorro: $${(precioViejo - precioNuevo).toFixed(2)})`);
-        } else if (precioViejo < precioNuevo) {
-          precioAnteriorParaEnviar = 0;
-          console.log(`📈 Precio aumentó: $${precioViejo} → $${precioNuevo} (NO es oferta)`);
         } else {
           precioAnteriorParaEnviar = 0;
-          console.log(`📊 Precio sin cambios: $${precioViejo}`);
         }
       }
     }
@@ -1358,7 +1353,6 @@ document.getElementById("btnConfirmarProd").addEventListener("click", async () =
       formData.append("file", window.fotoOptimizada, "producto.jpg");
       formData.append("email", email);
 
-      console.log("📡 Subiendo foto principal...");
       const respFoto = await fetch("https://mpagina.onrender.com/subir-foto", {
         method: "POST",
         body: formData
@@ -1371,22 +1365,18 @@ document.getElementById("btnConfirmarProd").addEventListener("click", async () =
 
       const fotoData = await respFoto.json();
       foto_url = fotoData.url || "";
-      console.log("✅ Foto principal subida:", foto_url);
     } else if (window.productoEditandoId) {
       const productoExistente = window.todosLosProductos?.find(p => p.id_base === window.productoEditandoId);
       foto_url = productoExistente?.imagen_url || "";
-      console.log("🔄 Manteniendo foto principal existente:", foto_url);
     }
     const fotosAdicionalesUrls = [];
     
     if (window.fotosAdicionalesExistentes && window.fotosAdicionalesExistentes.length > 0) {
       fotosAdicionalesUrls.push(...window.fotosAdicionalesExistentes);
-      console.log(`🔄 Manteniendo ${window.fotosAdicionalesExistentes.length} fotos adicionales existentes`);
     }
     
     const fotosInput = document.getElementById('fotosAdicionales');
     if (fotosInput && fotosInput.files && fotosInput.files.length > 0) {
-      console.log(`📸 Subiendo ${fotosInput.files.length} nuevas fotos adicionales...`);
       
       for (let i = 0; i < fotosInput.files.length; i++) {
         try {
@@ -1396,7 +1386,6 @@ document.getElementById("btnConfirmarProd").addEventListener("click", async () =
           try {
             blobOptimizado = await optimizarImagen(file);
           } catch (e) {
-            console.warn(`⚠️ No se pudo optimizar foto ${i+1}, subiendo original:`, e);
             blobOptimizado = file; 
           }
           
@@ -1411,22 +1400,18 @@ document.getElementById("btnConfirmarProd").addEventListener("click", async () =
 
           if (!resp.ok) {
             const text = await resp.text();
-            console.warn(`⚠️ Error subiendo foto adicional ${i+1}: ${resp.status} ${text}`);
             continue; 
           }
 
           const data = await resp.json();
           if (data.url) {
             fotosAdicionalesUrls.push(data.url);
-            console.log(`✅ Foto adicional ${i+1} subida: ${data.url.substring(0, 50)}...`);
           }
         } catch (err) {
-          console.error(`❌ Error procesando foto adicional ${i+1}:`, err);
+          continue;
         }
       }
     }
-
-    console.log(`📊 Total fotos adicionales procesadas: ${fotosAdicionalesUrls.length}`);
 
     const nombre = document.getElementById("nombreProd").value.trim();
     const precioNuevo = parseFloat(document.getElementById("precioProd").value);
@@ -1470,16 +1455,13 @@ document.getElementById("btnConfirmarProd").addEventListener("click", async () =
       stockPorTalle = {"unico": stockGeneral};
     }
 
-    console.log("📦 Stock procesado:", stockPorTalle);
-
     if (window.productoEditandoId && precioViejo > precioNuevo) {
       try {
         const historial = JSON.parse(localStorage.getItem('historial_precios') || '{}');
         historial[window.productoEditandoId] = precioViejo;
         localStorage.setItem('historial_precios', JSON.stringify(historial));
-        console.log(`💰 Precio anterior guardado en localStorage: $${precioViejo} (backup)`);
       } catch(e) {
-        console.log("⚠️ Error guardando en localStorage:", e);
+        // ignore
       }
     }
 
@@ -1504,14 +1486,10 @@ document.getElementById("btnConfirmarProd").addEventListener("click", async () =
 
     if (esEdicion) {
       payload.producto.id_base = window.productoEditandoId;
-      console.log("🔄 Modo EDICIÓN para ID:", window.productoEditandoId);
-      console.log(`💰 precio_anterior a enviar: $${precioAnteriorParaEnviar} ${precioAnteriorParaEnviar > 0 ? '(OFERTA)' : '(sin oferta)'}`);
     } else {
-      console.log("➕ Modo CREACIÓN de nuevo producto");
       producto.precio_anterior = 0;
     }
 
-    console.log("📤 Payload para backend:", JSON.stringify(payload, null, 2));
     const endpoint = "https://mpagina.onrender.com/guardar-producto";
     
     const respGuardar = await fetch(endpoint, {
@@ -1522,12 +1500,10 @@ document.getElementById("btnConfirmarProd").addEventListener("click", async () =
 
     if (!respGuardar.ok) {
       const text = await respGuardar.text();
-      console.error("❌ Error del servidor:", text);
       throw new Error(`Error al guardar producto: ${respGuardar.status} ${text}`);
     }
 
     const data = await respGuardar.json();
-    console.log("📩 Respuesta backend:", data);
 
     if (data.status === "ok") {
       const mensaje = esEdicion ? 
@@ -1540,11 +1516,8 @@ document.getElementById("btnConfirmarProd").addEventListener("click", async () =
       if (tieneOferta && precioAnteriorBackend > 0) {
         const descuento = Math.round(((precioAnteriorBackend - precioNuevo) / precioAnteriorBackend) * 100);
         alert(`${mensaje}\n🔥 ¡OFERTA DETECTADA! -${descuento}% de descuento`);
-        
-        console.log(`🎯 OFERTA CONFIRMADA: Antes $${precioAnteriorBackend} → Ahora $${precioNuevo} (-${descuento}%)`);
       } else {
         alert(mensaje);
-        console.log(`📊 Producto guardado sin oferta: $${precioNuevo}`);
       }
 
       resetearFormularioAdmin();
@@ -1560,11 +1533,9 @@ document.getElementById("btnConfirmarProd").addEventListener("click", async () =
       }, 1000);
       
     } else {
-      console.error("❌ Error al guardar producto:", data);
       alert("❌ " + (data.error || data.message || "Error al guardar producto"));
     }
   } catch (err) {
-    console.error("💥 Error en flujo de confirmación:", err);
     alert("❌ Error al guardar producto: " + err.message);
   }
 });
