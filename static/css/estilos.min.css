@@ -187,27 +187,18 @@ body.container.py-5.modo-oscuro {
 
 
 @media (max-width: 767px) {
-    .card-front, .card-back {
-        position: relative !important;
-        backface-visibility: visible !important;
-        transform: none !important;
-        height: auto !important;        /* 👈 NUEVO: que la altura se ajuste al contenido */
-        min-height: 200px !important;   /* 👈 NUEVO: altura mínima para que se vea */
-        overflow: visible !important;   /* 👈 NUEVO: que no se recorte el contenido */
-    }
-
-    /* Asegurar que el contenedor padre también se ajuste */
-    .card-contenedor {
-        height: auto !important;
-        min-height: 200px !important;
-        transform: none !important;
-    }
-
-    /* Forzar visibilidad del texto y botones */
-    .card-front * {
-        opacity: 1 !important;
-        visibility: visible !important;
-        color: white !important;
-        display: block !important; /* Esto puede ajustarse después */
-    }
+  #productos * {
+    opacity: 1 !important;
+    visibility: visible !important;
+    color: white !important;
+    background-color: rgba(0,0,0,0.5) !important;
+    display: block !important;
+    font-size: 16px !important;
+    line-height: 1.2 !important;
+    height: auto !important;
+    min-height: 20px !important;
+    overflow: visible !important;
+    transform: none !important;
+    transition: none !important;
+  }
 }
