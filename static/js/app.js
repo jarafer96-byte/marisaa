@@ -1613,7 +1613,6 @@ function renderPagina(pagina, productosFiltrados) {
   const fin = inicio + itemsPorPagina;
   const productosPagina = productosFiltrados.slice(inicio, fin);
   cont.innerHTML = "";
-  alert("Renderizando página " + pagina + " con " + productosFiltrados.length + " productos");  
   productosPagina.forEach((p, index) => {
     const esLCP = (pagina === 1 && index === 0);
     cont.appendChild(renderProducto(p, esLCP));
