@@ -1,6 +1,11 @@
-.card-producto {
-  border: 2px solid blue;
-  opacity: 1 !important; /* Solo para prueba */
+@media (max-width: 767px) {
+  .card-producto {
+    opacity: 1 !important;
+    visibility: visible !important;
+  }
+  .lazy-image {
+    opacity: 1 !important; /* Muestra las imágenes aunque no hayan cargado */
+  }
 }
 
 
