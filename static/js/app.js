@@ -320,7 +320,7 @@ document.addEventListener('DOMContentLoaded', () => {
         setTimeout(() => {
           panelGrupos.classList.add("oculta");
           panelSub.classList.add("oculta");
-        }, 200);
+        }, 300);
       }
     }
   });
