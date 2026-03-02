@@ -310,14 +310,17 @@ document.addEventListener('DOMContentLoaded', () => {
     if (panelGrupos && panelSub) {
       const esClickDentroGrupos = panelGrupos.contains(e.target);
       const esClickDentroSub = panelSub.contains(e.target);
-      const esBotonGrupo = e.target.classList.contains("btn-grupo");
-      const esBotonSubgrupo = e.target.classList.contains("btn-subgrupo");
+      const esBotonGrupo = e.target.classList.contains("btn-grupo") || e.target.closest('.btn-grupo');
+      const esBotonSubgrupo = e.target.classList.contains("btn-subgrupo") || e.target.closest('.btn-subgrupo');
       const esBotonNavegacion = !!e.target.closest(".barra-navegacion");
 
       if (!esClickDentroGrupos && !esClickDentroSub && 
           !esBotonGrupo && !esBotonSubgrupo && !esBotonNavegacion) {
-        panelGrupos.classList.add("oculta");
-        panelSub.classList.add("oculta");
+        // Pequeño retraso para evitar cierre inmediato tras abrir
+        setTimeout(() => {
+          panelGrupos.classList.add("oculta");
+          panelSub.classList.add("oculta");
+        }, 200);
       }
     }
   });
