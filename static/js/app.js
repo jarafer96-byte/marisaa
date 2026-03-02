@@ -2105,7 +2105,6 @@ function irAContacto() {
 window.irAContacto = irAContacto; 
     
 function renderProducto(p, esLCP = false) {
-  alert("Renderizando producto: " + p.nombre);  
   const card = document.createElement("div");
   card.className = "col-lg-4 col-md-6 col-sm-12 mb-4 fade-reorder card-producto";
   card.dataset.id = p.id_base;
@@ -2407,7 +2406,6 @@ function renderProducto(p, esLCP = false) {
   requestAnimationFrame(() => card.classList.add("show"));
   setTimeout(() => card.classList.remove("fade-reorder"), 50);
 
-  alert("Producto renderizado: " + p.nombre);  
   return card;
 }
 
