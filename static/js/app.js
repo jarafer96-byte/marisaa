@@ -2154,60 +2154,29 @@ function irAContacto() {
 window.irAContacto = irAContacto; 
     
 function renderProducto(p, esLCP = false) {
-  console.log("🎯 [RENDER-PRODUCTO] INICIO =====================================");
-  console.log("📦 Datos completos del producto recibido:", JSON.stringify(p, null, 2));
-  
   const card = document.createElement("div");
   card.className = "col-lg-4 col-md-6 col-sm-12 mb-4 fade-reorder card-producto";
   card.dataset.id = p.id_base;
   card.dataset.precio = p.precio;
-  console.log("💰 [PRECIO-ANTERIOR] Verificación:");
-  console.log("   - ID Producto:", p.id_base);
-  console.log("   - Nombre:", p.nombre);
-  console.log("   - Precio actual (p.precio):", p.precio, "(tipo:", typeof p.precio, ")");
-  console.log("   - Precio anterior (p.precio_anterior):", p.precio_anterior, "(tipo:", typeof p.precio_anterior, ")");
-  console.log("   - ¿Existe campo precio_anterior?:", "precio_anterior" in p);
-  console.log("   - Valor directo:", p.precio_anterior);
-  console.log("   - Valor parseado:", parseFloat(p.precio_anterior));
 
   const precioActual = parseFloat(p.precio) || 0;
   const precioAnterior = parseFloat(p.precio_anterior) || 0;
-  
-  console.log("   - Precio actual (parseado):", precioActual);
-  console.log("   - Precio anterior (parseado):", precioAnterior);
 
   const esOferta = precioAnterior > 0 && precioAnterior > precioActual;
   const descuentoPorcentaje = esOferta ? 
     Math.round(((precioAnterior - precioActual) / precioAnterior) * 100) : 0;
-  
-  console.log("   - ¿Es oferta?:", esOferta, "(precioAnterior > precioActual:", precioAnterior > precioActual, ")");
-  console.log("   - Porcentaje descuento:", descuentoPorcentaje + "%");
-  console.log("   - Ahorro: $" + (precioAnterior - precioActual).toFixed(2));
 
   if (!esOferta && window.todosLosProductos) {
-    console.log("   🔍 Buscando precio anterior en array global...");
     const productoCompleto = window.todosLosProductos.find(prod => prod.id_base === p.id_base);
     if (productoCompleto) {
-      console.log("   - Producto encontrado en array global:", productoCompleto.nombre);
-      console.log("   - precio_anterior en array:", productoCompleto.precio_anterior);
       if (productoCompleto.precio_anterior && productoCompleto.precio_anterior > precioActual) {
-        console.log("   ⚠️ ¡OFERTA ENCONTRADA EN ARRAY GLOBAL!");
-        console.log("   - Usando precio anterior del array:", productoCompleto.precio_anterior);
         precioAnterior = parseFloat(productoCompleto.precio_anterior) || 0;
         esOferta = precioAnterior > 0 && precioAnterior > precioActual;
       }
     }
   }
   
-  console.log("   - Resultado final - Es oferta:", esOferta);
-  console.log("   - Precio anterior final:", precioAnterior);
-  
   const tieneStockPorTalle = p.stock_por_talle && Object.keys(p.stock_por_talle).length > 0;
-  
-  console.log("📦 [STOCK] Verificación:");
-  console.log("   - Tiene stock_por_talle:", tieneStockPorTalle);
-  console.log("   - stock_por_talle:", p.stock_por_talle);
-  console.log("   - stock:", p.stock);
   
   let stockData = {};
   let opcionesTalles = "";
@@ -2217,15 +2186,11 @@ function renderProducto(p, esLCP = false) {
   if (tieneStockPorTalle) {
     stockData = p.stock_por_talle;
     window[`stock_por_talle_${p.id_base}`] = stockData;
-    
-    console.log("   - Stock por talle asignado:", stockData);
 
     const tallesDisponibles = Object.keys(stockData);
-    console.log("   - Talles disponibles:", tallesDisponibles);
     
     tallesDisponibles.forEach(talle => {
       const stock = stockData[talle] || 0;
-      console.log(`   - Talle ${talle}: stock = ${stock}`);
       
       const opcion = stock > 0 ? 
         `<option value="${talle}">${talle} (${stock} disponible${stock > 1 ? 's' : ''})</option>` :
@@ -2235,28 +2200,22 @@ function renderProducto(p, esLCP = false) {
       if (stockInicial === 0 && stock > 0) {
         stockInicial = stock;
         talleInicial = talle;
-        console.log(`   - Talle inicial elegido: ${talleInicial} (stock: ${stockInicial})`);
       }
     });
 
     if (stockInicial === 0 && tallesDisponibles.length > 0) {
       talleInicial = tallesDisponibles[0];
       stockInicial = stockData[talleInicial] || 0;
-      console.log(`   - Sin stock, usando primer talle: ${talleInicial} (stock: ${stockInicial})`);
     }
   } else {
     const stockGeneral = p.stock || 0;
     stockData = { "unico": stockGeneral };
     window[`stock_por_talle_${p.id_base}`] = stockData;
     stockInicial = stockGeneral;
-    console.log(`   - Producto sin talles, stock general: ${stockGeneral}`);
   }
   
   const mostrarStock = stockInicial > 0 ? stockInicial : "Sin stock";
   const claseStock = stockInicial > 0 ? "" : "text-danger";
-  
-  console.log("   - Stock inicial final:", stockInicial);
-  console.log("   - Talle inicial final:", talleInicial);
 
   const nombreEscapado = p.nombre.replace(/'/g, "\\'").replace(/"/g, '\\"');
   const descripcionEscapada = (p.descripcion || "").replace(/'/g, "\\'").replace(/"/g, '\\"');
@@ -2267,10 +2226,6 @@ function renderProducto(p, esLCP = false) {
   const fotosAdicionalesSeguras = (p.fotos_adicionales || []).map(foto => 
     foto.replace(/'/g, "\\'").replace(/"/g, '\\"')
   );
-  
-  console.log("🔗 [URLs] Verificación:");
-  console.log("   - Imagen URL:", imagenUrl);
-  console.log("   - Fotos adicionales:", fotosAdicionalesSeguras.length);
   
   const onclickAgregar = `agregarAlCarritoDOM('${nombreEscapado}', 'precio_${p.id_base}', 'cantidad_${p.id_base}', '${p.id_base}', '${grupoEscapado}', '${subgrupoEscapado}')`;
   
@@ -2301,13 +2256,6 @@ function renderProducto(p, esLCP = false) {
     </div>
   ` : '';
   
-  console.log("🎨 [HTML] Generando HTML para producto:", p.nombre);
-  console.log("   - Es oferta en HTML:", esOferta);
-  console.log("   - Badge oferta generado:", esOferta ? "SÍ" : "NO");
-  console.log("   - Precio anterior en HTML:", precioAnterior);
-  console.log("   - Precio actual en HTML:", precioActual);
-  
-  // Construir atributos de la imagen según si es LCP o no
   const imgSrc = `${imagenUrl}${imagenUrl.includes('?') ? '&' : '?'}format=webp`;
   let imgAttributes = `src="${imgSrc}"`;
   if (!esLCP) {
@@ -2321,7 +2269,6 @@ function renderProducto(p, esLCP = false) {
     <div class="card-contenedor">
       <!-- FRENTE (COMPLETO) -->
       <div class="card-front">
-        <!-- 🔥 ETIQUETA OFERTA SIMPLE - SOLO ADELANTE -->
         ${esOferta ? `
           <div class="oferta-badge" style="
             position: absolute;
@@ -2363,13 +2310,11 @@ function renderProducto(p, esLCP = false) {
           
           <p class="mb-2">
             <strong>Precio:</strong> 
-            <!-- 🔥 PRECIO ANTERIOR TACHADO (SOLO SI HAY OFERTA) -->
             ${esOferta ? `
               <span style="text-decoration: line-through; color: #999; font-size: 0.9rem; margin-right: 5px;">
                 $${precioAnterior.toFixed(2)}
               </span>
             ` : ''}
-            <!-- 🔥 PRECIO ACTUAL EN ROJO SI ES OFERTA -->
             $<span id="precio_${p.id_base}" style="${esOferta ? 'color: #ff4757; font-weight: bold;' : ''}">${p.precio}</span>
             ${esOferta ? `<small style="color: #20c997; font-weight: bold; margin-left: 5px;">Ahorras $${(precioAnterior - precioActual).toFixed(2)}</small>` : ''}
           </p>
@@ -2399,10 +2344,8 @@ function renderProducto(p, esLCP = false) {
             </button>
           </div>
           
-          <!-- 🔥 FOTOS ADICIONALES (SIN TEXTO) -->
           ${fotosAdicionalesHTML}
           
-          <!-- 🔥 BOTÓN WHATSAPP ESPECÍFICO -->
           ${whatsappUrl ? `
             <div class="mt-3">
               <a href="${whatsappUrl}" class="btn btn-whatsapp btn-sm w-100 d-flex align-items-center justify-content-center gap-2" target="_blank" style="background-color: #0c6909; color: white;">
@@ -2421,7 +2364,7 @@ function renderProducto(p, esLCP = false) {
           ↩️
         </button>
         
-        <!-- 🔥 ÁREA DE DESCRIPCIÓN (OCUPA TODO EL ESPACIO DISPONIBLE) -->
+        <!-- ÁREA DE DESCRIPCIÓN (OCUPA TODO EL ESPACIO DISPONIBLE) -->
         <div class="descripcion-area" style="
           flex: 1;
           padding: 80px 80px 80px 80px;
@@ -2429,12 +2372,11 @@ function renderProducto(p, esLCP = false) {
           text-align: center;
           flex-direction: column;
           justify-content: center;
-          /* 🔥 OCULTAR BARRA DE SCROLL PERO PERMITIR SCROLL */
-          scrollbar-width: none; /* Firefox */
-          -ms-overflow-style: none; /* IE/Edge */
+          scrollbar-width: none;
+          -ms-overflow-style: none;
         ">
           <div class="descripcion-area::-webkit-scrollbar {
-            display: none; /* Chrome/Safari/Opera */
+            display: none;
           }">
             ${p.descripcion ? `
               <div style="
@@ -2458,7 +2400,7 @@ function renderProducto(p, esLCP = false) {
           </div>
         </div>
         
-        <!-- 🔥 SECCIÓN INFERIOR (FUERA DEL ÁREA DE DESCRIPCIÓN) -->
+        <!-- SECCIÓN INFERIOR (FUERA DEL ÁREA DE DESCRIPCIÓN) -->
         <div class="card-back-footer" style="
           padding: 15px;
           border-top: 1px solid rgba(255,255,255,0.1);
@@ -2475,8 +2417,6 @@ function renderProducto(p, esLCP = false) {
               <strong>Talles:</strong> ${Object.keys(stockData).join(", ")}
             </div>
           ` : ""}
-          
-          <!-- 🔥 REMOVIDO: Sección de oferta en el reverso -->
           
           <div class="mt-2">
             <button class="btn btn-secondary btn-sm w-100" onclick="girarCard(this)">
@@ -2501,11 +2441,6 @@ function renderProducto(p, esLCP = false) {
     </div>
   </div>
 `;
-
-  console.log("✅ [RENDER-PRODUCTO] HTML generado para:", p.nombre);
-  console.log("   - Badge visible en DOM:", esOferta ? "SÍ (debería verse)" : "NO");
-  console.log("   - Card añadida al DOM");
-  console.log("🎯 [RENDER-PRODUCTO] FIN ======================================\n\n");
 
   if (talleInicial) {
     setTimeout(() => {
