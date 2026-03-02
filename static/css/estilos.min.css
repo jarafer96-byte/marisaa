@@ -1,3 +1,9 @@
+.card-producto {
+  border: 2px solid blue;
+  opacity: 1 !important; /* Solo para prueba */
+}
+
+
 #ubicacion a {
   display: inline-flex !important;
   align-items: center !important;
