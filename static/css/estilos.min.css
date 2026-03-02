@@ -173,3 +173,14 @@ body.container.py-5.modo-oscuro {
 .fotos-adicionales { margin-top: 10px; padding-top: 10px; border-top: 1px solid rgba(255,255,255,0.1); }
 .fotos-adicionales img { transition: transform 0.2s; flex-shrink: 0; width: 60px !important; height: 60px !important; border: 1px solid rgba(255,255,255,0.2); }
 .fotos-adicionales img:hover { transform: scale(1.2); z-index: 10; position: relative; }  
+
+
+@media (max-width: 768px) {
+  .card-producto,
+  .card-producto * {
+    opacity: 1 !important;
+    visibility: visible !important;
+    display: block !important;
+    color: white !important;
+  }
+}
