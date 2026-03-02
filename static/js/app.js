@@ -1751,6 +1751,7 @@ fetch(urlProductos)
   });
     
 function mostrarGrupo(nombre, event, auto = false) {
+  alert("mostrarGrupo ejecutado para: " + nombre);  
   const cont = document.getElementById("productos");
   if (!cont) {
     return;
