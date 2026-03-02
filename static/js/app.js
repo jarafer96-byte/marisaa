@@ -1800,6 +1800,7 @@ function mostrarGrupo(nombre, event, auto = false) {
   });
 
   renderPagina(1, productosGrupo);
+  alert("Después de renderPagina, hijos: " + document.getElementById("productos").children.length);  
   renderPaginacion(productosGrupo);
 
   if (subcategorias.length > 0) {
