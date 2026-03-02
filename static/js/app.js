@@ -1783,40 +1783,32 @@ fetch(urlProductos)
   });
     
 function mostrarGrupo(nombre, event, auto = false) {
-  console.log("🟦 mostrarGrupo llamado con:", { nombre, auto });
-
   const cont = document.getElementById("productos");
   if (!cont) {
-    console.warn("⚠️ No existe #productos en el DOM");
     return;
   }
 
   document.querySelectorAll('.btn-grupo').forEach(btn => btn.classList.remove('active'));
   if (event?.target) {
     event.target.classList.add('active');
-    console.log("👉 Botón de grupo marcado:", event.target.textContent);
   }
 
   const panel = document.getElementById('panelSubcategorias');
   if (!panel) {
-    console.warn("⚠️ No existe #panelSubcategorias en el DOM");
     return;
   }
   panel.innerHTML = "";
 
   const grupoCanon = String(nombre || "").trim();
   window.currentGrupo = grupoCanon.toLowerCase();
-  console.log("🎯 Grupo activo (canon):", grupoCanon);
 
   const productosGrupo = (window.todosLosProductos || []).filter(
     p => String(p.grupo || "").toLowerCase() === grupoCanon.toLowerCase()
   );
-  console.log("📦 Productos encontrados para grupo:", productosGrupo.length);
 
   const subcategorias = [...new Set(
     productosGrupo.map(p => p.subgrupo).filter(s => s && String(s).toLowerCase() !== 'general')
   )];
-  console.log("📂 Subcategorías detectadas:", subcategorias);
 
   subcategorias.forEach(sub => {
     const btn = document.createElement('button');
@@ -1824,7 +1816,6 @@ function mostrarGrupo(nombre, event, auto = false) {
     btn.className = 'btn-subgrupo';
     btn.addEventListener("click", (e) => mostrarSubgrupo(sub, e));
     panel.appendChild(btn);
-    console.log("➕ Botón subgrupo creado:", sub);
   });
 
   renderPagina(1, productosGrupo);
@@ -1833,34 +1824,26 @@ function mostrarGrupo(nombre, event, auto = false) {
   if (subcategorias.length > 0) {
     if (!auto) {
       panel.classList.remove('oculta');
-      console.log("📂 Panel subcategorias visible");
     } else {
       panel.classList.add('oculta');
-      console.log("📂 Panel subcategorias oculto (auto)");
     }
   } else {
     panel.classList.add('oculta');
-    console.log("📂 Grupo sin subcategorías");
   }
 
-  console.log("✅ Productos renderizados con paginación en #productos");
   window.scrollTo({ top: 0, behavior: 'auto' });
 }
 window.mostrarGrupo = mostrarGrupo;
 
 function filtrarSubcategoria(grupo, subgrupo) {
-  console.log("🟨 filtrarSubcategoria llamada con:", { grupo, subgrupo });
-
   const cont = document.getElementById("productos");
   if (!cont) {
-    console.warn("⚠️ No existe #productos en el DOM");
     return;
   }
   cont.innerHTML = "";
 
   const grupoCanon = String(grupo || "").trim();
   const subCanon = String(subgrupo || "").trim();
-  console.log("🎯 Grupo canon:", grupoCanon, " | Subgrupo canon:", subCanon || `General_${grupoCanon}`);
 
   let productosFiltrados;
   if (subCanon) {
@@ -1876,13 +1859,8 @@ function filtrarSubcategoria(grupo, subgrupo) {
     );
   }
 
-  console.log("📦 Productos filtrados:", productosFiltrados.length);
-
   renderPagina(1, productosFiltrados);
   renderPaginacion(productosFiltrados);
-
-  console.log("✅ Productos renderizados con paginación en #productos");
-  console.log("📥 Hijos actuales en #productos:", cont.children.length);
 
   window.scrollTo({ top: 0, behavior: 'auto' });
 }
