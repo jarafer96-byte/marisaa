@@ -125,7 +125,16 @@ body.container.py-5.modo-oscuro {
 #toggleCarrito { position: fixed; border: black; bottom: 20px; right: 20px; z-index: 1000; padding: 10px 14px; border-radius: 50px; font-weight: bold; box-shadow: 0 0 5px black; cursor: pointer; }
 .modo-oscuro #carrito { background-color: rgba(0,0,0,0.85); color: white; border: 1px solid white; box-shadow: 0 0 10px white; }
 
-.productos-container, #productos { margin-top: 30px; content-visibility: auto; contain-intrinsic-size: 1px 5000px; }
+.productos-container, #productos {
+  margin-top: 30px;
+}
+
+@media (min-width: 768px) {
+  .productos-container, #productos {
+    content-visibility: auto;
+    contain-intrinsic-size: 1px 5000px;
+  }
+}
 
 .modal-talles-stock input[type="text"],
 .modal-talles-stock input[type="number"] { font-size: 14px; }
