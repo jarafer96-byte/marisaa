@@ -1613,10 +1613,21 @@ function renderPagina(pagina, productosFiltrados) {
   const fin = inicio + itemsPorPagina;
   const productosPagina = productosFiltrados.slice(inicio, fin);
   cont.innerHTML = "";
+
+  alert("Renderizando página " + pagina + " con " + productosFiltrados.length + " productos");
+
+  // Alert 2: Verifica que renderProducto existe
+  alert("Tipo de renderProducto: " + typeof renderProducto);
+
+  // Alert 3: Antes de iniciar el bucle
+  alert("Voy a iniciar el bucle con " + productosFiltrados.length + " productos");
+    
   productosPagina.forEach((p, index) => {
+    alert("Procesando producto: " + p.nombre);  
     const esLCP = (pagina === 1 && index === 0);
     cont.appendChild(renderProducto(p, esLCP));
   });
+  alert("Bucle terminado, hijos en contenedor: " + cont.children.length);  
 }
 
 
