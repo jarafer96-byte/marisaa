@@ -316,8 +316,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
       if (!esClickDentroGrupos && !esClickDentroSub && 
           !esBotonGrupo && !esBotonSubgrupo && !esBotonNavegacion) {
-        // Pequeño retraso para evitar cierre inmediato tras abrir
-        alert("Cerrando panel");  
         setTimeout(() => {
           panelGrupos.classList.add("oculta");
           panelSub.classList.add("oculta");
