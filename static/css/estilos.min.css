@@ -186,3 +186,16 @@ body.container.py-5.modo-oscuro {
 .fotos-adicionales img:hover { transform: scale(1.2); z-index: 10; position: relative; }  
 
 
+@media (max-width: 767px) {
+  .card-contenedor {
+    transform: none !important; /* Anula la rotación 3D */
+  }
+  .card-front, .card-back {
+    position: relative !important; /* Los saca del flujo absoluto */
+    backface-visibility: visible !important;
+    transform: none !important;
+  }
+  .card-back {
+    display: none !important; /* Oculta el reverso si no lo necesitas */
+  }
+}
