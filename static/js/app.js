@@ -954,7 +954,7 @@ function habilitarScrollHorizontal(selector) {
 habilitarScrollHorizontal('.panel-grupos');
 habilitarScrollHorizontal('.panel-subcategorias');
 
-const itemsPorPagina = 12;
+const itemsPorPagina = 30;
 let totalPaginas = 0;
 
 const modoAdmin = window.tokenAdminEmail ? true : false;
