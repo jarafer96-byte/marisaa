@@ -1610,42 +1610,16 @@ if (window.modoAdmin) {
 
 function renderPagina(pagina, productosFiltrados) {
   const cont = document.getElementById("productos");
-  if (!cont) return;
-  
-  const isMobile = window.innerWidth <= 767;
-  let productosAMostrar = productosFiltrados.slice(
-    (pagina - 1) * itemsPorPagina,
-    pagina * itemsPorPagina
-  );
-
-  // Si es móvil y hay más de 7 productos, limitar a 7
-  if (isMobile && productosAMostrar.length > 7) {
-    productosAMostrar = productosAMostrar.slice(0, 7);
-    // Opcional: guardar el resto para un "Ver más"
-    window.productosRestantes = productosFiltrados.slice(7);
-  }
-
-  cont.innerHTML = "";
-  productosAMostrar.forEach((p, index) => {
+  totalPaginas = Math.ceil(productosFiltrados.length / itemsPorPagina);
+  const inicio = (pagina - 1) * itemsPorPagina;
+  const fin = inicio + itemsPorPagina;
+  const productosPagina = productosFiltrados.slice(inicio, fin);
+  cont.innerHTML = "";    
+  productosPagina.forEach((p, index) => {
     const esLCP = (pagina === 1 && index === 0);
     cont.appendChild(renderProducto(p, esLCP));
   });
-
-  // Si hay productos restantes, mostrar un botón "Ver más"
-  if (isMobile && window.productosRestantes && window.productosRestantes.length > 0) {
-    const btnVerMas = document.createElement('button');
-    btnVerMas.textContent = 'Ver más productos';
-    btnVerMas.className = 'btn btn-primary mt-3';
-    btnVerMas.onclick = () => {
-      // Mostrar el resto de productos
-      const resto = window.productosRestantes;
-      resto.forEach(p => cont.appendChild(renderProducto(p)));
-      btnVerMas.remove();
-    };
-    cont.appendChild(btnVerMas);
-  }
 }
-
 
 function renderPaginacion(productosFiltrados) {
   const pagDiv = document.getElementById("paginacion");
