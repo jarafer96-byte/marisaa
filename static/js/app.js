@@ -956,7 +956,9 @@ function habilitarScrollHorizontal(selector) {
 habilitarScrollHorizontal('.panel-grupos');
 habilitarScrollHorizontal('.panel-subcategorias');
 
-const itemsPorPagina = 12;
+// Detectar si es móvil (ajusta el ancho si es necesario)
+const isMobile = window.innerWidth <= 767;
+const itemsPorPagina = isMobile ? 7 : 12;
 let totalPaginas = 0;
 
 const modoAdmin = window.tokenAdminEmail ? true : false;
