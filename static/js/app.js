@@ -2679,3 +2679,19 @@ document.getElementById("btnQuitarFoto").addEventListener("click", () => {
 
   console.log("🗑️ Foto eliminada");
 }); 
+
+
+// Ocultar splash screen cuando todo el contenido esté cargado
+window.addEventListener('load', function() {
+  const splash = document.getElementById('splash-screen');
+  if (splash) {
+    // Pequeño retraso para asegurar que todo se ha pintado
+    setTimeout(() => {
+      splash.style.opacity = '0';
+      splash.style.transition = 'opacity 0.5s ease';
+      setTimeout(() => {
+        splash.style.display = 'none';
+      }, 500);
+    }, 300);
+  }
+});
