@@ -1800,7 +1800,7 @@ function mostrarGrupo(nombre, event, auto = false) {
     panel.classList.add('oculta');
   }
 
-  requestAnimationFrame(() => {
+  setTimeout(() => {
     window.scrollTo({ top: 0, behavior: 'auto' });
   }, 0);
 }
@@ -1833,7 +1833,7 @@ function filtrarSubcategoria(grupo, subgrupo) {
   renderPagina(1, productosFiltrados);
   renderPaginacion(productosFiltrados);
 
-  requestAnimationFrame(() => {
+  setTimeout(() => {
     window.scrollTo({ top: 0, behavior: 'auto' });
   }, 0);
 }
