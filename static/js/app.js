@@ -1800,7 +1800,9 @@ function mostrarGrupo(nombre, event, auto = false) {
     panel.classList.add('oculta');
   }
 
-  window.scrollTo({ top: 0, behavior: 'auto' });
+  requestAnimationFrame(() => {
+    window.scrollTo({ top: 0, behavior: 'auto' });
+  });
 }
 window.mostrarGrupo = mostrarGrupo;
 
@@ -1831,7 +1833,11 @@ function filtrarSubcategoria(grupo, subgrupo) {
   renderPagina(1, productosFiltrados);
   renderPaginacion(productosFiltrados);
 
-  window.scrollTo({ top: 0, behavior: 'auto' });
+  requestAnimationFrame(() => {
+    window.scrollTo({ top: 0, behavior: 'auto' });
+  });
+}
+window.mostrarGrupo = mostrarGrupo;
 }
 window.filtrarSubcategoria = filtrarSubcategoria;
 
