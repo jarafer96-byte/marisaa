@@ -2538,12 +2538,21 @@ function ajustarPosicionesPaneles() {
   const panelSub = document.getElementById('panelSubcategorias');
   const barraNav = document.querySelector('.barra-navegacion');
 
-  if (!panelGrupos || !panelSub) {
-    return;
+  if (!panelGrupos || !panelSub) return;
+
+  // 1. Leer todas las medidas necesarias primero
+  let alturaBarra = 0;
+  if (barraNav) {
+    alturaBarra = barraNav.offsetHeight;
   }
 
+  let alturaGrupos = 0;
+  if (panelGrupos && !panelGrupos.classList.contains('oculta')) {
+    alturaGrupos = panelGrupos.offsetHeight;
+  }
+
+  // 2. Aplicar estilos (escritura)
   if (!panelGrupos.classList.contains('oculta')) {
-    const alturaBarra = barraNav ? barraNav.offsetHeight : 0;
     panelGrupos.style.top = alturaBarra + 'px';
     panelGrupos.style.position = 'fixed';
     panelGrupos.style.left = '0';
@@ -2551,12 +2560,10 @@ function ajustarPosicionesPaneles() {
   }
 
   if (!panelSub.classList.contains('oculta')) {
-    const alturaBarra = barraNav ? barraNav.offsetHeight : 0;
-    const alturaGrupos = panelGrupos ? panelGrupos.offsetHeight : 0;
     const margenAdicional = 19;
     const desplazamientoArriba = -20;
     const topCalc = alturaBarra + alturaGrupos + margenAdicional + desplazamientoArriba;
-    panelSub.style.top = topCalc + 'px'; 
+    panelSub.style.top = topCalc + 'px';
     panelSub.style.position = 'fixed';
     panelSub.style.left = '0';
     panelSub.style.right = '0';
