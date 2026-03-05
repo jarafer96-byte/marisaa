@@ -1802,7 +1802,7 @@ function mostrarGrupo(nombre, event, auto = false) {
 
   requestAnimationFrame(() => {
     window.scrollTo({ top: 0, behavior: 'auto' });
-  });
+  }, 0);
 }
 window.mostrarGrupo = mostrarGrupo;
 
@@ -1835,7 +1835,7 @@ function filtrarSubcategoria(grupo, subgrupo) {
 
   requestAnimationFrame(() => {
     window.scrollTo({ top: 0, behavior: 'auto' });
-  });
+  }, 0);
 }
 window.filtrarSubcategoria = filtrarSubcategoria;
 
