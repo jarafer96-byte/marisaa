@@ -1837,8 +1837,6 @@ function filtrarSubcategoria(grupo, subgrupo) {
     window.scrollTo({ top: 0, behavior: 'auto' });
   });
 }
-window.mostrarGrupo = mostrarGrupo;
-}
 window.filtrarSubcategoria = filtrarSubcategoria;
 
 (function setupImmediate() {
