@@ -2703,6 +2703,6 @@ window.addEventListener('load', function() {
       setTimeout(() => {
         splash.style.display = 'none';
       }, 500);
-    }, 300);
+    }, 2000);
   }
 });
