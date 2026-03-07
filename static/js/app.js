@@ -2702,25 +2702,26 @@ window.addEventListener('load', function() {
   }
 });
 
-// Mostrar indicador de deslizable solo si hay overflow y es móvil
-const panelGrupos = document.getElementById('panelGrupos');
-const splash = document.getElementById('splash-deslizable');
-
-if (panelGrupos && splash) {
-  // Verificar si hay overflow (más ancho que el contenedor)
-  const tieneOverflow = panelGrupos.scrollWidth > panelGrupos.clientWidth;
+// Esperar a que los grupos estén listos (puedes poner esto al final de la carga de productos)
+setTimeout(() => {
+  const panelGrupos = document.getElementById('panelGrupos');
+  const splash = document.getElementById('splash-deslizable');
   
-  if (tieneOverflow && window.innerWidth < 768) {
+  if (!panelGrupos || !splash) return;
+
+  // Por ahora, forzamos que se muestre en móvil sin importar el overflow
+  if (window.innerWidth < 768) {
     splash.style.display = 'block';
-    
-    // Ocultar al hacer scroll en la barra
+    splash.style.opacity = '1'; // Asegurar que no esté oculto por la animación
+
+    // Ocultar al hacer scroll
     panelGrupos.addEventListener('scroll', () => {
       splash.style.opacity = '0';
       setTimeout(() => splash.remove(), 500);
     }, { once: true });
-    
-    // También ocultar después de 5 segundos (la animación ya lo hace)
+
+    // También ocultar después de 5 segundos (opcional, puedes mantener la animación)
   } else {
     splash.remove();
   }
-}
+}, 1000); // Esperar 1 segundo para que los grupos se hayan cargado
