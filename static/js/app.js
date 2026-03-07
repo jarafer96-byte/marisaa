@@ -2156,7 +2156,12 @@ function renderProducto(p, esLCP = false) {
       stockInicial = stockData[talleInicial] || 0;
     }
   } else {
-    const stockGeneral = p.stock || 0;
+    let stockGeneral = 0;
+    if (p.stock_por_talle && p.stock_por_talle["unico"] !== undefined) {
+        stockGeneral = p.stock_por_talle["unico"];
+    } else if (p.stock) {
+        stockGeneral = p.stock;
+    }
     stockData = { "unico": stockGeneral };
     window[`stock_por_talle_${p.id_base}`] = stockData;
     stockInicial = stockGeneral;
