@@ -861,14 +861,14 @@ function resetearFormularioAdmin() {
   
   console.log("✅ Formulario admin completamente reseteado");
 }
+
 function actualizarStockPorTalle(idProducto, talleSeleccionado) {
   console.log(`📊 [actualizarStockPorTalle] id: ${idProducto}, talle: ${talleSeleccionado}`);
   
-  const stockSpan = document.getElementById(`stock_${idProducto}`);
   const cantidadInput = document.getElementById(`cantidad_${idProducto}`);
   const agregarBtn = document.getElementById(`btn_agregar_${idProducto}`);
   
-  if (!stockSpan || !cantidadInput || !agregarBtn) {
+  if (!cantidadInput || !agregarBtn) {
     console.warn("⚠️ Elementos no encontrados");
     return;
   }
@@ -884,31 +884,21 @@ function actualizarStockPorTalle(idProducto, talleSeleccionado) {
     stockDisponible = 0;
   }
 
-  stockSpan.textContent = stockDisponible > 0 ? stockDisponible : "Sin stock";
-  
+  // Actualizar input y botón según el stock disponible
+  cantidadInput.max = stockDisponible;
   if (stockDisponible > 0) {
-    stockSpan.classList.remove("text-danger");
-    stockSpan.classList.add("text-success");
-    setTimeout(() => stockSpan.classList.remove("text-success"), 1000);
-    
-    cantidadInput.max = stockDisponible;
     cantidadInput.disabled = false;
     const valorActual = parseInt(cantidadInput.value) || 1;
     cantidadInput.value = Math.min(valorActual, stockDisponible);
-    
     agregarBtn.disabled = false;
     agregarBtn.style.opacity = "1";
     agregarBtn.textContent = "Agregar al carrito";
   } else {
-    stockSpan.classList.remove("text-success");
-    stockSpan.classList.add("text-danger");
-    
     cantidadInput.disabled = true;
     cantidadInput.value = "0";
-    
     agregarBtn.disabled = true;
     agregarBtn.style.opacity = "0.5";
-    agregarBtn.textContent = "Sin stock";
+    agregarBtn.textContent = "❌ Sin stock";
   }
 }
 
