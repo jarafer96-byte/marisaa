@@ -12,7 +12,7 @@
   white-space: nowrap;
   z-index: 1001;
   box-shadow: 0 2px 10px rgba(0,0,0,0.3);
-  animation: fadeOut 5s forwards;
+  animation: fadeOut 10s forwards;
   pointer-events: none; /* Para que no interfiera con clics */
 }
 
