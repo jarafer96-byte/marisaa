@@ -2701,3 +2701,26 @@ window.addEventListener('load', function() {
     }, 2000);
   }
 });
+
+// Mostrar indicador de deslizable solo si hay overflow y es móvil
+const panelGrupos = document.getElementById('panelGrupos');
+const splash = document.getElementById('splash-deslizable');
+
+if (panelGrupos && splash) {
+  // Verificar si hay overflow (más ancho que el contenedor)
+  const tieneOverflow = panelGrupos.scrollWidth > panelGrupos.clientWidth;
+  
+  if (tieneOverflow && window.innerWidth < 768) {
+    splash.style.display = 'block';
+    
+    // Ocultar al hacer scroll en la barra
+    panelGrupos.addEventListener('scroll', () => {
+      splash.style.opacity = '0';
+      setTimeout(() => splash.remove(), 500);
+    }, { once: true });
+    
+    // También ocultar después de 5 segundos (la animación ya lo hace)
+  } else {
+    splash.remove();
+  }
+}
