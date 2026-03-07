@@ -2717,11 +2717,11 @@ setTimeout(() => {
     // Ocultar al hacer scroll
     panelGrupos.addEventListener('scroll', () => {
       splash.style.opacity = '0';
-      setTimeout(() => splash.remove(), 500);
+      setTimeout(() => splash.remove(), 1000);
     }, { once: true });
 
     // También ocultar después de 5 segundos (opcional, puedes mantener la animación)
   } else {
     splash.remove();
   }
-}, 1000); // Esperar 1 segundo para que los grupos se hayan cargado
+}, 2300); // Esperar 1 segundo para que los grupos se hayan cargado
