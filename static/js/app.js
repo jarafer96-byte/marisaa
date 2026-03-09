@@ -2702,30 +2702,30 @@ window.addEventListener('load', function() {
   }
 });
 
-// Variable para controlar el timeout (evita acumulación)
-let splashTimeout;
+// Variable para controlar el timeout del splash deslizable
+let splashDeslizableTimeout;
 
 document.getElementById('btnProductos').addEventListener('click', function() {
-  const splash = document.getElementById('splash-screen');
-  if (!splash) return;
+  const splashDeslizable = document.getElementById('splash-deslizable');
+  if (!splashDeslizable) return;
 
-  // Cancelar cualquier timeout pendiente
-  if (splashTimeout) clearTimeout(splashTimeout);
+  // Cancelar timeout anterior si existe
+  if (splashDeslizableTimeout) clearTimeout(splashDeslizableTimeout);
 
-  // Mostrar el splash (quitamos la clase oculta y aseguramos opacidad 1)
-  splash.classList.remove('oculta');
-  splash.style.opacity = '1';
-  splash.style.transition = 'none'; // sin transición al aparecer
+  // Mostrar el splash
+  splashDeslizable.classList.remove('oculta'); // o splashDeslizable.style.display = 'flex' según tu CSS
+  splashDeslizable.style.opacity = '1';
+  // Si quieres que aparezca instantáneamente, quita transiciones
 
-  // Programar ocultamiento después de 1 segundo (ajusta el tiempo a tu gusto)
-  splashTimeout = setTimeout(() => {
-    splash.style.transition = 'opacity 0.5s ease';
-    splash.style.opacity = '0';
+  // Ocultar después de 1.5 segundos (ajusta el tiempo)
+  splashDeslizableTimeout = setTimeout(() => {
+    splashDeslizable.style.transition = 'opacity 0.5s ease';
+    splashDeslizable.style.opacity = '0';
     setTimeout(() => {
-      splash.classList.add('oculta');
-      // Restauramos opacidad para la próxima vez
-      splash.style.opacity = '1';
-      splash.style.transition = 'none';
+      splashDeslizable.classList.add('oculta');
+      // Restaurar opacidad para la próxima vez
+      splashDeslizable.style.opacity = '1';
+      splashDeslizable.style.transition = 'none';
     }, 500);
-  }, 1000);
+  }, 1500);
 });
