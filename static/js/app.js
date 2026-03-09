@@ -2702,26 +2702,30 @@ window.addEventListener('load', function() {
   }
 });
 
-// Esperar a que los grupos estén listos (puedes poner esto al final de la carga de productos)
-setTimeout(() => {
-  const panelGrupos = document.getElementById('panelGrupos');
-  const splash = document.getElementById('splash-deslizable');
-  
-  if (!panelGrupos || !splash) return;
+// Variable para controlar el timeout (evita acumulación)
+let splashTimeout;
 
-  // Por ahora, forzamos que se muestre en móvil sin importar el overflow
-  if (window.innerWidth < 768) {
-    splash.style.display = 'block';
-    splash.style.opacity = '1'; // Asegurar que no esté oculto por la animación
+document.getElementById('btnProductos').addEventListener('click', function() {
+  const splash = document.getElementById('splash-screen');
+  if (!splash) return;
 
-    // Ocultar al hacer scroll
-    panelGrupos.addEventListener('scroll', () => {
-      splash.style.opacity = '0';
-      setTimeout(() => splash.remove(), 300);
-    }, { once: true });
+  // Cancelar cualquier timeout pendiente
+  if (splashTimeout) clearTimeout(splashTimeout);
 
-    // También ocultar después de 5 segundos (opcional, puedes mantener la animación)
-  } else {
-    splash.remove();
-  }
-}, 1000); // Esperar 1 segundo para que los grupos se hayan cargado
+  // Mostrar el splash (quitamos la clase oculta y aseguramos opacidad 1)
+  splash.classList.remove('oculta');
+  splash.style.opacity = '1';
+  splash.style.transition = 'none'; // sin transición al aparecer
+
+  // Programar ocultamiento después de 1 segundo (ajusta el tiempo a tu gusto)
+  splashTimeout = setTimeout(() => {
+    splash.style.transition = 'opacity 0.5s ease';
+    splash.style.opacity = '0';
+    setTimeout(() => {
+      splash.classList.add('oculta');
+      // Restauramos opacidad para la próxima vez
+      splash.style.opacity = '1';
+      splash.style.transition = 'none';
+    }, 500);
+  }, 1000);
+});
