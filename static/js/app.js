@@ -2254,7 +2254,7 @@ function renderProducto(p, esLCP = false) {
              alt="${p.nombre}"
              width="300"
              height="180"
-             style="width:100%; height:180px; object-fit:contain; border-radius:4px; cursor:pointer; opacity:0; transition: opacity 0.3s;"
+             style="width:100%; height:180px; object-fit:contain; border-radius:4px; cursor:pointer; opacity:0;"
              class="lazy-image"
              onload="this.style.opacity='1'"
              onclick="openModal('${imagenUrl}')">
