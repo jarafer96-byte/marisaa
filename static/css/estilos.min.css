@@ -1,6 +1,6 @@
 .splash-deslizable {
   position: fixed;
-  top: 60px; /* Ajusta según la altura de tu barra */
+  top: 95px; /* Ajusta según la altura de tu barra */
   left: 50%;
   transform: translateX(-50%);
   background: rgba(0, 0, 0, 0.8);
