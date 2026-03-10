@@ -328,28 +328,21 @@ document.addEventListener('DOMContentLoaded', () => {
   const ordenSelect = document.getElementById("ordenPrecio");
   if (ordenSelect) {
     ordenSelect.addEventListener("change", (e) => {
-      const valor = e.target.value; 
+      const valor = e.target.value; // "asc" o "desc"
 
-      const grupoActivoBtn = document.querySelector(".btn-grupo.active");
-      if (!grupoActivoBtn) {
+      // Usar las variables globales de estado en lugar del DOM
+      if (!window.currentGrupo) {
         console.warn("No hay grupo seleccionado. No se puede ordenar.");
-        return; // No hace nada
-      }  
-      const grupoActivo = grupoActivoBtn ? grupoActivoBtn.textContent.trim() : null;
-
-      const subActivoBtn = document.querySelector(".btn-subgrupo.active");
-      const subActivo = subActivoBtn ? subActivoBtn.textContent.trim() : null;
-
-      let productosFiltrados = window.todosLosProductos;
-
-      if (grupoActivo) {
-        productosFiltrados = productosFiltrados.filter(
-          p => p.grupo?.toLowerCase() === grupoActivo.toLowerCase()
-        );
+        return;
       }
-      if (subActivo) {
-        productosFiltrados = productosFiltrados.filter(
-          p => p.subgrupo?.toLowerCase() === subActivo.toLowerCase()
+
+      let productosFiltrados = window.todosLosProductos.filter(p =>
+        p.grupo?.toLowerCase() === window.currentGrupo
+      );
+
+      if (window.currentSub) {
+        productosFiltrados = productosFiltrados.filter(p =>
+          p.subgrupo?.toLowerCase() === window.currentSub
         );
       }
 
@@ -363,11 +356,19 @@ document.addEventListener('DOMContentLoaded', () => {
       if (!cont) return;
 
       cont.innerHTML = "";
-      productosFiltrados.forEach((p) => {
+      productosFiltrados.forEach(p => {
         const card = renderProducto(p);
         cont.appendChild(card);
-        setTimeout(() => card.classList.remove("fade-reorder"), 50);
       });
+
+      setTimeout(() => {
+        document.querySelectorAll('.fade-reorder').forEach(el => el.classList.remove('fade-reorder'));
+      }, 50);
+
+      // Reiniciar paginación a la página 1 y actualizar los botones de página
+      paginaActual = 1;
+      productosFiltradosActuales = productosFiltrados;
+      renderPaginacion(productosFiltrados);
     });
   }
 
