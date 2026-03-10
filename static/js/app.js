@@ -1545,64 +1545,83 @@ function salirAdmin() {
   window.modoAdmin = false;
   window.tokenAdmin = null;
 
-  history.replaceState(null, "", "index.html");
+  // Limpiar la URL (quitar el token)
+  history.replaceState(null, "", window.location.pathname);
 
+  // Ocultar elementos exclusivos de admin
   const loginToggleBtn = document.getElementById("loginToggleBtn");
-  if (loginToggleBtn) {
-    loginToggleBtn.style.display = "none";
-    console.log("✅ Botón admin flotante ocultado");
-  }
-  
-  if (window.todosLosProductos) {
-    const cont = document.getElementById("productos");
-    if (cont) {
-      cont.innerHTML = "";
-      window.todosLosProductos.forEach(p => cont.appendChild(renderProducto(p)));
-      console.log("✅ Productos re-renderizados en modo público, total:", cont.children.length);
+  if (loginToggleBtn) loginToggleBtn.style.display = "none";
+
+  const logoutWrapper = document.getElementById("logoutAdminWrapper");
+  if (logoutWrapper) logoutWrapper.style.display = "none";
+
+  const adminCard = document.getElementById("adminCard");
+  if (adminCard) adminCard.classList.add("d-none");
+
+  const configurarMP = document.getElementById("configurarMP");
+  if (configurarMP) configurarMP.classList.add("d-none");
+
+  // Restaurar la vista normal (con el grupo/subgrupo que estaba activo)
+  if (window.currentGrupo) {
+    // Buscar el botón del grupo actual en el DOM
+    const btnGrupo = Array.from(document.querySelectorAll('.btn-grupo'))
+      .find(b => b.textContent.trim().toLowerCase() === window.currentGrupo.toLowerCase());
+
+    if (btnGrupo) {
+      // Activar el grupo (simula un clic)
+      mostrarGrupo(window.currentGrupo, { target: btnGrupo });
+
+      // Si además hay un subgrupo activo, restaurarlo después de un breve instante
+      if (window.currentSub) {
+        setTimeout(() => {
+          const btnSub = Array.from(document.querySelectorAll('.btn-subgrupo'))
+            .find(b => b.textContent.trim().toLowerCase() === window.currentSub.toLowerCase());
+          if (btnSub) {
+            mostrarSubgrupo(window.currentSub, { target: btnSub });
+          } else {
+            // Si el subgrupo ya no existe, mostrar el primer subgrupo del grupo
+            const subgrupos = [...new Set(window.todosLosProductos
+              .filter(p => p.grupo?.toLowerCase() === window.currentGrupo.toLowerCase())
+              .map(p => p.subgrupo).filter(Boolean))];
+            if (subgrupos.length > 0) {
+              filtrarSubcategoria(window.currentGrupo, subgrupos[0]);
+            }
+          }
+        }, 100);
+      }
     } else {
-      console.warn("⚠️ No se encontró el contenedor #productos al salir de admin");
+      // El grupo actual no existe (puede haber sido eliminado), mostrar el primer grupo disponible
+      const primerGrupo = document.querySelector('.btn-grupo');
+      if (primerGrupo) {
+        mostrarGrupo(primerGrupo.textContent.trim(), { target: primerGrupo });
+      }
+    }
+  } else {
+    // No hay grupo actual, mostrar el primer grupo
+    const primerGrupo = document.querySelector('.btn-grupo');
+    if (primerGrupo) {
+      mostrarGrupo(primerGrupo.textContent.trim(), { target: primerGrupo });
     }
   }
 
-  const logoutWrapper = document.getElementById("logoutAdminWrapper");
-  if (logoutWrapper) {
-    logoutWrapper.style.display = "none";
-    console.log("✅ Botón de logout ocultado");
-  } else {
-    console.warn("⚠️ No se encontró #logoutAdminWrapper en el DOM");
-  }
-
-  const adminCard = document.getElementById("adminCard");
-  if (adminCard) {
-    adminCard.classList.add("d-none");
-    console.log("✅ adminCard ocultado");
-  }
-
-  const configurarMP = document.getElementById("configurarMP");
-  if (configurarMP) {
-    configurarMP.classList.add("d-none");
-    console.log("✅ configurarMP ocultado");
-  }
+  console.log("✅ Modo admin desactivado, vista restaurada.");
 }
 
+// Al cargar la página, si estamos en modo admin, mostrar los elementos correspondientes
 if (window.modoAdmin) {
-  const logoutWrapper = document.getElementById("logoutAdminWrapper");
-  if (logoutWrapper) {
-    logoutWrapper.style.display = "block";
-    console.log("🔑 Modo admin activo, mostrando botón de logout");
-  }
+  // Usar DOMContentLoaded para asegurar que los elementos existen
+  document.addEventListener('DOMContentLoaded', function() {
+    const logoutWrapper = document.getElementById("logoutAdminWrapper");
+    if (logoutWrapper) logoutWrapper.style.display = "block";
 
-  const adminCard = document.getElementById("adminCard");
-  if (adminCard) {
-    adminCard.classList.remove("d-none");
-    console.log("🔑 adminCard mostrado");
-  }
+    const adminCard = document.getElementById("adminCard");
+    if (adminCard) adminCard.classList.remove("d-none");
 
-  const configurarMP = document.getElementById("configurarMP");
-  if (configurarMP) {
-    configurarMP.classList.remove("d-none");
-    console.log("🔑 configurarMP mostrado");
-  }
+    const configurarMP = document.getElementById("configurarMP");
+    if (configurarMP) configurarMP.classList.remove("d-none");
+
+    console.log("🔑 Modo admin activo, elementos mostrados.");
+  });
 }
 
 function renderPagina(pagina, productosFiltrados) {
