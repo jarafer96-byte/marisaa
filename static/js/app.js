@@ -1792,33 +1792,35 @@ fetch(urlProductos)
   });
     
 function mostrarGrupo(nombre, event, auto = false) {
-  const cont = document.getElementById("productos");
-  if (!cont) {
-    return;
-  }
+  // 1. Actualizar estado global: grupo actual y reseteo de subgrupo
+  window.currentGrupo = String(nombre || "").trim().toLowerCase();
+  window.currentSub = null; // ← explícitamente limpiamos el subgrupo
 
+  const cont = document.getElementById("productos");
+  if (!cont) return;
+
+  // 2. Manejo visual de botones de grupo
   document.querySelectorAll('.btn-grupo').forEach(btn => btn.classList.remove('active'));
   if (event?.target) {
     event.target.classList.add('active');
   }
 
+  // 3. Panel de subcategorías
   const panel = document.getElementById('panelSubcategorias');
-  if (!panel) {
-    return;
-  }
+  if (!panel) return;
   panel.innerHTML = "";
 
-  const grupoCanon = String(nombre || "").trim();
-  window.currentGrupo = grupoCanon.toLowerCase();
-
+  // 4. Filtrar productos del grupo
   const productosGrupo = (window.todosLosProductos || []).filter(
-    p => String(p.grupo || "").toLowerCase() === grupoCanon.toLowerCase()
+    p => String(p.grupo || "").toLowerCase() === window.currentGrupo
   );
-    
+
+  // 5. Obtener subcategorías (excluyendo 'general')
   const subcategorias = [...new Set(
     productosGrupo.map(p => p.subgrupo).filter(s => s && String(s).toLowerCase() !== 'general')
   )];
 
+  // 6. Crear botones de subcategoría
   subcategorias.forEach(sub => {
     const btn = document.createElement('button');
     btn.textContent = sub;
@@ -1827,9 +1829,11 @@ function mostrarGrupo(nombre, event, auto = false) {
     panel.appendChild(btn);
   });
 
-  renderPagina(1, productosGrupo); 
+  // 7. Renderizar productos y paginación
+  renderPagina(1, productosGrupo);
   renderPaginacion(productosGrupo);
 
+  // 8. Mostrar/ocultar panel de subcategorías según corresponda
   if (subcategorias.length > 0) {
     if (!auto) {
       panel.classList.remove('oculta');
@@ -1840,42 +1844,48 @@ function mostrarGrupo(nombre, event, auto = false) {
     panel.classList.add('oculta');
   }
 
-  setTimeout(() => {
-    window.scrollTo({ top: 0, behavior: 'auto' });
-  }, 0);
+  // 9. Opcional: scroll al inicio
+  setTimeout(() => window.scrollTo({ top: 0, behavior: 'auto' }), 0);
 }
 window.mostrarGrupo = mostrarGrupo;
 
 function filtrarSubcategoria(grupo, subgrupo) {
   const cont = document.getElementById("productos");
-  if (!cont) {
-    return;
-  }
-  cont.innerHTML = "";
+  if (!cont) return;
 
-  const grupoCanon = String(grupo || "").trim();
-  const subCanon = String(subgrupo || "").trim();
+  // Normalizar valores
+  const grupoCanon = String(grupo || "").trim().toLowerCase();
+  const subCanon = String(subgrupo || "").trim().toLowerCase();
+
+  // Actualizar estado global
+  window.currentGrupo = grupoCanon;
+  window.currentSub = subCanon || null; // si subCanon es vacío, asignamos null
+
+  // Quitar clase active de todos los subgrupos (si existen)
+  document.querySelectorAll('.btn-subgrupo').forEach(btn => btn.classList.remove('active'));
+
+  if (subCanon) {
+    const btnSub = Array.from(document.querySelectorAll('.btn-subgrupo'))
+      .find(btn => btn.textContent.trim().toLowerCase() === subCanon);
+    if (btnSub) btnSub.classList.add('active');
+  }
 
   let productosFiltrados;
   if (subCanon) {
     productosFiltrados = window.todosLosProductos.filter(p =>
-      String(p.grupo || "").toLowerCase() === grupoCanon.toLowerCase() &&
-      String(p.subgrupo || "").toLowerCase() === subCanon.toLowerCase()
+      String(p.grupo || "").toLowerCase() === grupoCanon &&
+      String(p.subgrupo || "").toLowerCase() === subCanon
     );
   } else {
-    const subgrupoGeneral = `General_${grupoCanon}`;
     productosFiltrados = window.todosLosProductos.filter(p =>
-      String(p.grupo || "").toLowerCase() === grupoCanon.toLowerCase() &&
-      String(p.subgrupo || "").toLowerCase() === subgrupoGeneral.toLowerCase()
+      String(p.grupo || "").toLowerCase() === grupoCanon
     );
   }
-
+    
   renderPagina(1, productosFiltrados);
   renderPaginacion(productosFiltrados);
 
-  setTimeout(() => {
-    window.scrollTo({ top: 0, behavior: 'auto' });
-  }, 0);
+  setTimeout(() => window.scrollTo({ top: 0, behavior: 'auto' }), 0);
 }
 window.filtrarSubcategoria = filtrarSubcategoria;
 
