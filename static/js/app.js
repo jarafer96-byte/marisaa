@@ -331,6 +331,10 @@ document.addEventListener('DOMContentLoaded', () => {
       const valor = e.target.value; 
 
       const grupoActivoBtn = document.querySelector(".btn-grupo.active");
+      if (!grupoActivoBtn) {
+        console.warn("No hay grupo seleccionado. No se puede ordenar.");
+        return; // No hace nada
+      }  
       const grupoActivo = grupoActivoBtn ? grupoActivoBtn.textContent.trim() : null;
 
       const subActivoBtn = document.querySelector(".btn-subgrupo.active");
