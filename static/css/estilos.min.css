@@ -68,19 +68,7 @@
 .lazy-image { transition: opacity 0.3s ease !important; } 
 .lazy-image.loaded { opacity: 1; }   
   
-@media (max-width: 576px) {
-  #adminCard {
-    margin: 10px;                /* separación de los bordes */
-    padding: 15px;               /* más espacio interior */
-    max-width: calc(100% - 20px); /* ocupa casi todo el ancho */
-  }
-  #adminCard input,
-  #adminCard textarea,
-  #adminCard button {
-    font-size: 16px;   /* evita el zoom automático en iOS */
-    min-height: 44px;  /* tamaño táctil recomendado */
-  }
-}
+#adminCard { max-width: 500px; margin-left: auto; width: 100%; height: 100%; margin-right: auto; background: #00000088 !important; }
 #logoutAdminWrapper button { font-family: 'Raleway', sans-serif; font-weight: 600; font-size: 14px; padding: 8px 15px; border-radius: 30px; border: 1px solid rgba(255, 255, 255, 0.2); background: #212529; color: #f8f9fa; box-shadow: 0 0 6px rgba(255, 255, 255, 0.2); transition: all 0.3s ease; }
 
 body.container.modo-oscuro { position: relative !important; border-radius: 40px !important; padding: 40px !important; margin: 0 auto !important; width: 100% !important; max-width: 1300px !important; box-sizing: border-box !important; }
