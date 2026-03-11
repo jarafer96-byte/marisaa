@@ -954,9 +954,24 @@ function habilitarScrollHorizontal(selector) {
 habilitarScrollHorizontal('.panel-grupos');
 habilitarScrollHorizontal('.panel-subcategorias');
 
-// Detectar si es móvil (ajusta el ancho si es necesario)
-const isMobile = window.innerWidth <= 767;
-const itemsPorPagina = isMobile ? 5 : 12;
+let isMobile = window.matchMedia("(max-width: 767px)").matches;
+
+window.matchMedia("(max-width: 767px)").addEventListener('change', (e) => {
+    isMobile = e.matches;
+    if (productosFiltradosActuales && productosFiltradosActuales.length > 0) {
+        renderPagina(paginaActual, productosFiltradosActuales);
+        renderPaginacion(productosFiltradosActuales);
+    }
+    if (typeof ajustarPosicionesPaneles === 'function') {
+        ajustarPosicionesPaneles();
+    }
+});
+
+function getItemsPorPagina() {
+    if (isMobile && window.modoAdmin) return 4;
+    if (isMobile) return 5; 
+    return 12; 
+    
 let totalPaginas = 0;
 
 const modoAdmin = window.tokenAdminEmail ? true : false;
