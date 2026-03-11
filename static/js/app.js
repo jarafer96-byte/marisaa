@@ -1977,7 +1977,27 @@ function agregarAlCarritoDOM(nombre, idPrecioSpan, idCantidad, id_base, grupo = 
     carrito.push(nuevoItem);
   }
   
-  actualizarCarrito();
+  // Actualizar carrito (con animación en el contador)
+  actualizarCarrito(true);
+
+  // --- EFECTOS VISUALES ---
+  // Pop en el contador
+  const contadorSpan = document.getElementById('carrito-contador');
+  if (contadorSpan) {
+    contadorSpan.classList.add('pop-animation');
+    setTimeout(() => contadorSpan.classList.remove('pop-animation'), 400);
+  }
+
+  // Shake en el botón del carrito
+  const toggleBtn = document.getElementById('toggleCarrito');
+  if (toggleBtn) {
+    toggleBtn.classList.add('carrito-shake');
+    setTimeout(() => toggleBtn.classList.remove('carrito-shake'), 300);
+  }
+
+  // Toast de confirmación
+  mostrarToast(`✅ ${nombre} agregado al carrito`);
+
   console.log(`✅ Producto agregado al carrito: ${nombre} ${talleElegido !== "unico" ? `(Talle: ${talleElegido})` : ""}`);
 }
 
