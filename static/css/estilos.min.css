@@ -1,8 +1,8 @@
 .flecha-scroll {
     position: fixed;
-    transform: translateY(-50%);
+    transform: translateY(0); /* O puedes mantener translateY si lo necesitas */
     background: rgba(0, 0, 0, 0.5);
-    backdrop-filter: blur(5px); 
+    backdrop-filter: blur(5px);
     color: white;
     border: 1px solid rgba(255, 255, 255, 0.2);
     border-radius: 50%;
@@ -16,7 +16,13 @@
     transition: opacity 0.3s ease, transform 0.2s;
     font-size: 20px;
 }
+:root {
+    --barra-altura: 60px; 
+}
 
+.flecha-scroll {
+    top: calc(var(--barra-altura) + 5px);
+}
 .flecha-scroll:hover {
     background: white;
     color: black;
