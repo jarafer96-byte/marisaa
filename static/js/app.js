@@ -1,4 +1,6 @@
-let cargaCompleta = false;
+let paginaActual = 1;
+let productosFiltradosActuales = [];
+let cargaCompleta = false; 
 console.log = function() {};
 const configWhatsApp = window.cliente?.whatsapp;
 const email = window.cliente?.email;
@@ -968,11 +970,9 @@ window.matchMedia("(max-width: 767px)").addEventListener('change', (e) => {
 });
 
 function getItemsPorPagina() {
-    if (isMobile && window.modoAdmin) return 4;
-    if (isMobile) return 5; 
+    if (isMobile && window.modoAdmin) return 5;
+    if (isMobile) return 6; 
     return 12; 
-    
-let totalPaginas = 0;
 
 const modoAdmin = window.tokenAdminEmail ? true : false;
 
