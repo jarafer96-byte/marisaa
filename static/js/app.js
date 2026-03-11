@@ -2001,6 +2001,43 @@ function agregarAlCarritoDOM(nombre, idPrecioSpan, idCantidad, id_base, grupo = 
   console.log(`✅ Producto agregado al carrito: ${nombre} ${talleElegido !== "unico" ? `(Talle: ${talleElegido})` : ""}`);
 }
 
+function mostrarToast(mensaje) {
+  // Eliminar toast anterior si existe
+  const toastAnterior = document.querySelector('.toast-notificacion');
+  if (toastAnterior) toastAnterior.remove();
+
+  const toast = document.createElement('div');
+  toast.className = 'toast-notificacion';
+  toast.textContent = mensaje;
+  toast.style.cssText = `
+    position: fixed;
+    bottom: 90px;
+    right: 20px;
+    background: rgba(0, 0, 0, 0.9);
+    backdrop-filter: blur(10px);
+    color: white;
+    padding: 12px 20px;
+    border-radius: 30px;
+    font-family: 'Raleway', sans-serif;
+    font-size: 14px;
+    z-index: 9999;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+    border: 1px solid rgba(255,255,255,0.1);
+    transform: translateX(400px);
+    transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  `;
+  document.body.appendChild(toast);
+
+  // Forzar reflow para activar la transición
+  toast.offsetHeight;
+  toast.style.transform = 'translateX(0)';
+
+  setTimeout(() => {
+    toast.style.transform = 'translateX(400px)';
+    setTimeout(() => toast.remove(), 300);
+  }, 2000);
+}
+
 function loginAdmin(event) {
   event.preventDefault();
 
@@ -2117,7 +2154,7 @@ function sincronizarPreciosDelCarrito() {
   });
 }
 
-function actualizarCarrito() {
+function actualizarCarrito(conAnimacion = false) {
   sincronizarPreciosDelCarrito();
 
   const lista = document.getElementById('listaCarrito');
@@ -2130,10 +2167,19 @@ function actualizarCarrito() {
   if (carrito.length === 0) {
     lista.innerHTML = "<li>🛒 Carrito vacío</li>";
     totalSpan.textContent = "0.00";
+    // Actualizar contador a 0 sin animación
+    const contadorSpan = document.getElementById('carrito-contador');
+    if (contadorSpan) {
+      contadorSpan.textContent = '0';
+      contadorSpan.style.background = '#888';
+    }
     return;
   }
 
   const fmt = new Intl.NumberFormat('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+  // Función para escapar comillas simples en los valores (para el onclick)
+  const escape = str => (str || '').replace(/'/g, "\\'");
 
   carrito.forEach(item => {
     const subtotal = item.precio * item.cantidad;
@@ -2151,7 +2197,7 @@ function actualizarCarrito() {
             ${item.cantidad} x $${item.precio.toFixed(2)} = $${subtotal.toFixed(2)}
           </div>
         </div>
-        <button onmousedown="eliminarDelCarrito('${item.id_base}', '${item.talle}', '${item.color}', event)" 
+        <button onmousedown="eliminarDelCarrito('${escape(item.id_base)}', '${escape(item.talle)}', '${escape(item.color)}', event)" 
                 style="background: none; border: none; color: red; font-weight: bold; font-size: 16px; cursor: pointer;">
           ❌
         </button>
@@ -2159,6 +2205,20 @@ function actualizarCarrito() {
   });
 
   totalSpan.textContent = fmt.format(suma);
+
+  // Actualizar contador
+  const contadorSpan = document.getElementById('carrito-contador');
+  if (contadorSpan) {
+    const totalItems = carrito.reduce((acc, item) => acc + item.cantidad, 0);
+    contadorSpan.textContent = totalItems;
+    contadorSpan.style.background = totalItems > 0 ? '#ff4757' : '#888';
+
+    // Añadir animación si se solicita (pop)
+    if (conAnimacion) {
+      contadorSpan.classList.add('pop-animation');
+      setTimeout(() => contadorSpan.classList.remove('pop-animation'), 400);
+    }
+  }
 }
 
 function mostrarTodos() {
