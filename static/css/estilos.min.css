@@ -1,3 +1,9 @@
+#paginacion button.active {
+  background-color: #007bff;
+  color: white;
+  border-color: #007bff;
+}
+
 .flecha-scroll {
     position: fixed;
     transform: translateY(0); /* O puedes mantener translateY si lo necesitas */
