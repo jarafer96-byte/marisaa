@@ -1625,17 +1625,45 @@ if (window.modoAdmin) {
   });
 }
 
-function renderPagina(pagina, productosFiltrados) {
+function renderPagina(pagina, productos) {
   const cont = document.getElementById("productos");
-  totalPaginas = Math.ceil(productosFiltrados.length / itemsPorPagina);
+  if (!cont) return;
+
+  const itemsPorPagina = window.innerWidth <= 767 ? 6 : 12; // o usa getItemsPorPagina()
+
+  // Si no hay productos (null, undefined o array vacío), mostramos skeletons
+  if (!productos || productos.length === 0) {
+    cont.innerHTML = '';
+    for (let i = 0; i < itemsPorPagina; i++) {
+      cont.appendChild(crearSkeletonCard());
+    }
+    return;
+  }
+
+  // Renderizado normal de productos
   const inicio = (pagina - 1) * itemsPorPagina;
-  const fin = inicio + itemsPorPagina;
-  const productosPagina = productosFiltrados.slice(inicio, fin);
-  cont.innerHTML = "";    
+  const fin = Math.min(inicio + itemsPorPagina, productos.length);
+  const productosPagina = productos.slice(inicio, fin);
+
+  cont.innerHTML = '';
   productosPagina.forEach((p, index) => {
     const esLCP = (pagina === 1 && index === 0);
     cont.appendChild(renderProducto(p, esLCP));
   });
+}
+
+function crearSkeletonCard() {
+  const div = document.createElement('div');
+  div.className = 'col-lg-4 col-md-6 col-sm-12 mb-4';
+  div.innerHTML = `
+    <div class="skeleton-card">
+      <div class="skeleton-image"></div>
+      <div class="skeleton-line"></div>
+      <div class="skeleton-line short"></div>
+      <div class="skeleton-line medium"></div>
+    </div>
+  `;
+  return div;
 }
 
 function renderPaginacion(productosFiltrados) {
@@ -1659,6 +1687,7 @@ if (window.modoAdmin && window.tokenAdmin) {
 
 console.log("📡 Solicitando productos desde:", urlProductos);
 
+renderPagina(1, null);
 fetch(urlProductos)
   .then(r => {
     if (!r.ok) throw new Error("HTTP " + r.status);
