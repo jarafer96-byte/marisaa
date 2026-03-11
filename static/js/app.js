@@ -1685,14 +1685,24 @@ function crearSkeletonCard() {
 
 function renderPaginacion(productosFiltrados) {
   const pagDiv = document.getElementById("paginacion");
+  if (!pagDiv) return;
+  
+  const itemsPorPagina = getItemsPorPagina();
+  const totalPaginas = Math.ceil(productosFiltrados.length / itemsPorPagina);
+  
   pagDiv.innerHTML = "";
-  totalPaginas = Math.ceil(productosFiltrados.length / itemsPorPagina);
-
   for (let i = 1; i <= totalPaginas; i++) {
     const btn = document.createElement("button");
     btn.textContent = i;
     btn.className = "btn btn-light mx-1";
-    btn.onclick = () => renderPagina(i, productosFiltrados);
+    if (i === paginaActual) {
+      btn.classList.add("active"); // opcional: resaltar página actual
+    }
+    btn.onclick = () => {
+      paginaActual = i;
+      renderPagina(i, productosFiltrados);
+      renderPaginacion(productosFiltrados); // para actualizar clases activas
+    };
     pagDiv.appendChild(btn);
   }
 }
