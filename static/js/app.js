@@ -1,3 +1,4 @@
+let cargaCompleta = false;
 console.log = function() {};
 const configWhatsApp = window.cliente?.whatsapp;
 const email = window.cliente?.email;
@@ -1660,15 +1661,13 @@ console.log("📡 Solicitando productos desde:", urlProductos);
 
 fetch(urlProductos)
   .then(r => {
-    if (!r.ok) {
-      throw new Error("HTTP " + r.status);
-    }
+    if (!r.ok) throw new Error("HTTP " + r.status);
     return r.json();
   })
   .then(lista => {
     const productosOrdenados = Array.isArray(lista) ? lista : [];
     
-    // Orden: primero los que tienen stock, luego por precio ascendente
+    // Ordenar: primero con stock, luego por precio ascendente
     productosOrdenados.sort((a, b) => {
       const stockA = (a.stock_por_talle && Object.values(a.stock_por_talle).some(v => v > 0)) || 
                      (a.stock && a.stock > 0);
@@ -1684,7 +1683,7 @@ fetch(urlProductos)
     window.todosLosProductos = productosOrdenados;
     console.log("🌐 Productos recibidos y ordenados:", window.todosLosProductos.length);
 
-    // Construir datalists para sugerencias (para el admin)
+    // Poblar datalists para sugerencias en admin (con retraso para no bloquear)
     setTimeout(() => {
       const gruposUnicos = [...new Set(productosOrdenados.map(p => p.grupo).filter(Boolean))];
       const subgruposUnicos = [...new Set(productosOrdenados.map(p => p.subgrupo).filter(Boolean))];
@@ -1727,7 +1726,6 @@ fetch(urlProductos)
     const grupos = [...new Set(window.todosLosProductos.map(p => p.grupo).filter(Boolean))];
     console.log("📂 Grupos detectados:", grupos);
 
-    // Crear botones de grupos
     if (contGrupos) {
       contGrupos.innerHTML = ""; 
       grupos.forEach(g => {
@@ -1743,14 +1741,7 @@ fetch(urlProductos)
       });
     }
 
-    // Seleccionar primer grupo
     const primerGrupo = grupos[0];
-    if (!primerGrupo) {
-      console.log("No hay grupos para mostrar");
-      return;
-    }
-
-    // Obtener subgrupos del primer grupo
     const subgruposPrimer = [...new Set(window.todosLosProductos
       .filter(p => p.grupo === primerGrupo)
       .map(p => p.subgrupo).filter(Boolean))];
@@ -1758,37 +1749,24 @@ fetch(urlProductos)
     console.log("🎯 Primer grupo:", primerGrupo);
     console.log("📂 Subgrupos del primer grupo:", subgruposPrimer);
 
-    // Establecer grupo actual y activar su botón
-    window.currentGrupo = primerGrupo.toLowerCase();
-    const btnGrupo = Array.from(document.querySelectorAll('.btn-grupo'))
-      .find(b => b.textContent.trim().toLowerCase() === window.currentGrupo);
-    if (btnGrupo) btnGrupo.classList.add('active');
-
-    // Determinar qué mostrar inicialmente
-    if (subgruposPrimer.length > 0) {
-      // Hay subgrupos: mostrar el primer subgrupo
-      const primerSub = subgruposPrimer[0];
-      window.currentSub = primerSub.toLowerCase();
-      // Llamar a filtrarSubcategoria (que debe encargarse de renderizar y activar el botón de subgrupo)
-      filtrarSubcategoria(primerGrupo, primerSub);
-      // Opcional: si quieres que el panel de subcategorías esté oculto inicialmente (depende del diseño)
-      // const panelSub = document.getElementById('panelSubcategorias');
-      // if (panelSub) panelSub.classList.add('oculta');
-    } else {
-      // No hay subgrupos: mostrar todo el grupo
-      window.currentSub = null; // asegurar que no hay subgrupo activo
-      mostrarGrupo(primerGrupo, null, true);
-      // Ocultar panel de subcategorías si existe
-      const panelSub = document.getElementById('panelSubcategorias');
-      if (panelSub) panelSub.classList.add('oculta');
+    // Render inicial: si hay subgrupos, mostrar el primero; si no, mostrar todo el grupo
+    if (primerGrupo) {
+      if (subgruposPrimer.length > 0) {
+        console.log("➡️ Render inicial con subgrupo:", subgruposPrimer[0]);
+        filtrarSubcategoria(primerGrupo, subgruposPrimer[0]);
+      } else {
+        console.log("➡️ Render inicial con grupo completo");
+        mostrarGrupo(primerGrupo, null, true);
+      }
     }
 
     console.log("✅ Render inicial completado");
   })
   .catch(err => {
+    cargaCompleta = true;
     console.error("💥 Error cargando productos:", err);
     const cont = document.getElementById("productos");
-    if (cont) cont.innerHTML = "<p>Error al cargar productos.</p>";
+    if (cont) cont.innerHTML = "<p class='text-danger text-center'>Error al cargar productos. Intenta de nuevo.</p>";
   });
     
 function mostrarGrupo(nombre, event, auto = false) {
