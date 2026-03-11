@@ -973,6 +973,7 @@ function getItemsPorPagina() {
     if (isMobile && window.modoAdmin) return 5;
     if (isMobile) return 6; 
     return 12; 
+}
 
 const modoAdmin = window.tokenAdminEmail ? true : false;
 
