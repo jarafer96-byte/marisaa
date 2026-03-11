@@ -2900,31 +2900,3 @@ document.getElementById("btnQuitarFoto").addEventListener("click", () => {
 
   console.log("🗑️ Foto eliminada");
 }); 
-
-// Variable para controlar el timeout del splash deslizable
-let splashDeslizableTimeout;
-
-document.getElementById('btnProductos').addEventListener('click', function() {
-  const splashDeslizable = document.getElementById('splash-deslizable');
-  if (!splashDeslizable) return;
-
-  // Cancelar timeout anterior si existe
-  if (splashDeslizableTimeout) clearTimeout(splashDeslizableTimeout);
-
-  // Mostrar el splash
-  splashDeslizable.classList.remove('oculta'); // o splashDeslizable.style.display = 'flex' según tu CSS
-  splashDeslizable.style.opacity = '1';
-  // Si quieres que aparezca instantáneamente, quita transiciones
-
-  // Ocultar después de 1.5 segundos (ajusta el tiempo)
-  splashDeslizableTimeout = setTimeout(() => {
-    splashDeslizable.style.transition = 'opacity 0.5s ease';
-    splashDeslizable.style.opacity = '0';
-    setTimeout(() => {
-      splashDeslizable.classList.add('oculta');
-      // Restaurar opacidad para la próxima vez
-      splashDeslizable.style.opacity = '1';
-      splashDeslizable.style.transition = 'none';
-    }, 500);
-  }, 1500);
-});
