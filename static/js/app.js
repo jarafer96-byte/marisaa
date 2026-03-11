@@ -2275,6 +2275,7 @@ function mostrarTodos() {
 
     gestionarFlechas('panelGrupos');
     gestionarFlechas('panelSubcategorias');
+    ajustarPosicionesPaneles();
 }
       
 function irAContacto() {
@@ -2721,23 +2722,23 @@ function ajustarPosicionesPaneles() {
 
   if (!panelGrupos || !panelSub) return;
 
-  // 1. Leer todas las medidas necesarias primero
-  let alturaBarra = 0;
-  if (barraNav) {
-    alturaBarra = barraNav.offsetHeight;
-  }
-
+  let alturaBarra = barraNav ? barraNav.offsetHeight : 0;
   let alturaGrupos = 0;
   if (panelGrupos && !panelGrupos.classList.contains('oculta')) {
     alturaGrupos = panelGrupos.offsetHeight;
   }
 
-  // 2. Aplicar estilos (escritura)
   if (!panelGrupos.classList.contains('oculta')) {
     panelGrupos.style.top = alturaBarra + 'px';
     panelGrupos.style.position = 'fixed';
     panelGrupos.style.left = '0';
     panelGrupos.style.right = '0';
+
+    const contenedorGrupos = panelGrupos.parentElement;
+    const flechaIzqGrupos = contenedorGrupos.querySelector('.flecha-izq');
+    const flechaDerGrupos = contenedorGrupos.querySelector('.flecha-der');
+    if (flechaIzqGrupos) flechaIzqGrupos.style.top = alturaBarra + 'px';
+    if (flechaDerGrupos) flechaDerGrupos.style.top = alturaBarra + 'px';
   }
 
   if (!panelSub.classList.contains('oculta')) {
@@ -2748,6 +2749,13 @@ function ajustarPosicionesPaneles() {
     panelSub.style.position = 'fixed';
     panelSub.style.left = '0';
     panelSub.style.right = '0';
+
+    // Ajustar flechas del panel de subcategorías
+    const contenedorSub = panelSub.parentElement;
+    const flechaIzqSub = contenedorSub.querySelector('.flecha-izq');
+    const flechaDerSub = contenedorSub.querySelector('.flecha-der');
+    if (flechaIzqSub) flechaIzqSub.style.top = topCalc + 'px';
+    if (flechaDerSub) flechaDerSub.style.top = topCalc + 'px';
   } else {
     panelSub.style.top = '';
   }
