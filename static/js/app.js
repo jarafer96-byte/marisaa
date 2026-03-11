@@ -320,6 +320,8 @@ document.addEventListener('DOMContentLoaded', () => {
         setTimeout(() => {
           panelGrupos.classList.add("oculta");
           panelSub.classList.add("oculta");
+          gestionarFlechas('panelGrupos');
+          gestionarFlechas('panelSubcategorias');  
         }, 300);
       }
     }
@@ -1799,35 +1801,30 @@ fetch(urlProductos)
   });
     
 function mostrarGrupo(nombre, event, auto = false) {
-  // 1. Actualizar estado global: grupo actual y reseteo de subgrupo
-  window.currentGrupo = String(nombre || "").trim().toLowerCase();
-  window.currentSub = null; // ← explícitamente limpiamos el subgrupo
+  const grupoCanon = String(nombre || "").trim();
+  window.currentGrupo = grupoCanon.toLowerCase();
+  window.currentSub = null; 
 
   const cont = document.getElementById("productos");
   if (!cont) return;
 
-  // 2. Manejo visual de botones de grupo
   document.querySelectorAll('.btn-grupo').forEach(btn => btn.classList.remove('active'));
   if (event?.target) {
     event.target.classList.add('active');
   }
 
-  // 3. Panel de subcategorías
   const panel = document.getElementById('panelSubcategorias');
   if (!panel) return;
   panel.innerHTML = "";
 
-  // 4. Filtrar productos del grupo
   const productosGrupo = (window.todosLosProductos || []).filter(
     p => String(p.grupo || "").toLowerCase() === window.currentGrupo
   );
 
-  // 5. Obtener subcategorías (excluyendo 'general')
   const subcategorias = [...new Set(
     productosGrupo.map(p => p.subgrupo).filter(s => s && String(s).toLowerCase() !== 'general')
   )];
 
-  // 6. Crear botones de subcategoría
   subcategorias.forEach(sub => {
     const btn = document.createElement('button');
     btn.textContent = sub;
@@ -1836,11 +1833,9 @@ function mostrarGrupo(nombre, event, auto = false) {
     panel.appendChild(btn);
   });
 
-  // 7. Renderizar productos y paginación
   renderPagina(1, productosGrupo);
   renderPaginacion(productosGrupo);
 
-  // 8. Mostrar/ocultar panel de subcategorías según corresponda
   if (subcategorias.length > 0) {
     if (!auto) {
       panel.classList.remove('oculta');
@@ -1850,10 +1845,17 @@ function mostrarGrupo(nombre, event, auto = false) {
   } else {
     panel.classList.add('oculta');
   }
+  setTimeout(() => {
+    ajustarPosicionesPaneles(); 
 
-  // 9. Opcional: scroll al inicio
+    if (typeof gestionarFlechas === 'function') {
+      gestionarFlechas('panelSubcategorias');
+      gestionarFlechas('panelGrupos');
+    }
+  }, 0);
   setTimeout(() => window.scrollTo({ top: 0, behavior: 'auto' }), 0);
 }
+
 window.mostrarGrupo = mostrarGrupo;
 
 function filtrarSubcategoria(grupo, subgrupo) {
@@ -2228,19 +2230,52 @@ function actualizarCarrito(conAnimacion = false) {
   }
 }
 
-function mostrarTodos() {
-  const panelGrupos = document.getElementById('panelGrupos');
-  const panelSub = document.getElementById('panelSubcategorias');
+function gestionarFlechas(panelId) {
+    const panel = document.getElementById(panelId);
+    if (!panel) return;
 
-  if (!panelGrupos || !panelSub) return;
+    const contenedor = panel.parentElement;
+    const flechaIzq = contenedor.querySelector('.flecha-izq');
+    const flechaDer = contenedor.querySelector('.flecha-der');
 
-  panelGrupos.classList.toggle('oculta');
+    if (!flechaIzq || !flechaDer) return;
 
-  if (!panelSub.classList.contains('oculta')) {
-    panelSub.classList.add('oculta');
-  }
+    if (panel.classList.contains('oculta')) {
+        flechaIzq.style.display = 'none';
+        flechaDer.style.display = 'none';
+        return;
+    }
+
+    const actualizarVisibilidad = () => {
+        flechaIzq.style.display = panel.scrollLeft > 5 ? 'flex' : 'none';
+        
+        const tieneMasContenido = panel.scrollLeft + panel.clientWidth < panel.scrollWidth - 5;
+        flechaDer.style.display = tieneMasContenido ? 'flex' : 'none';
+    };
+
+    panel.onscroll = actualizarVisibilidad;
+    window.onresize = actualizarVisibilidad;
+
+    flechaIzq.onclick = () => panel.scrollBy({ left: -200, behavior: 'smooth' });
+    flechaDer.onclick = () => panel.scrollBy({ left: 200, behavior: 'smooth' });
+    
+    actualizarVisibilidad();
 }
-window.mostrarTodos = mostrarTodos; 
+
+function mostrarTodos() {
+    const panelGrupos = document.getElementById('panelGrupos');
+    const panelSub = document.getElementById('panelSubcategorias');
+    if (!panelGrupos || !panelSub) return;
+
+    panelGrupos.classList.toggle('oculta');
+    
+    if (!panelSub.classList.contains('oculta')) {
+        panelSub.classList.add('oculta');
+    }
+
+    gestionarFlechas('panelGrupos');
+    gestionarFlechas('panelSubcategorias');
+}
       
 function irAContacto() {
   const contacto = document.getElementById('ubicacion');
