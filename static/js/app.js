@@ -1646,7 +1646,7 @@ function renderPagina(pagina, productos) {
   const cont = document.getElementById("productos");
   if (!cont) return;
 
-  const itemsPorPagina = window.innerWidth <= 767 ? 5 : 12; // o usa getItemsPorPagina()
+  const itemsPorPagina = getItemsPorPagina();
 
   // Si no hay productos (null, undefined o array vacío), mostramos skeletons
   if (!productos || productos.length === 0) {
