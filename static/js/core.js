@@ -767,7 +767,7 @@ function actualizarCarrito(conAnimacion = false) {
 
   const contadorSpan = document.getElementById('carrito-contador');
   if (contadorSpan) {
-    const totalItems = carrito.reduce((acc, item) => acc + item.cantidad, 0);
+    const totalItems = window.carrito.reduce((acc, item) => acc + item.cantidad, 0);
     contadorSpan.textContent = totalItems;
     contadorSpan.style.background = totalItems > 0 ? '#ff4757' : '#888';
 
