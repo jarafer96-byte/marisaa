@@ -147,31 +147,6 @@
 #adminCard { max-width: 500px; margin-left: auto; width: 100%; height: 100%; margin-right: auto; background: #00000088 !important; }
 #logoutAdminWrapper button { font-family: 'Raleway', sans-serif; font-weight: 600; font-size: 14px; padding: 8px 15px; border-radius: 30px; border: 1px solid rgba(255, 255, 255, 0.2); background: #212529; color: #f8f9fa; box-shadow: 0 0 6px rgba(255, 255, 255, 0.2); transition: all 0.3s ease; }
 
-body.container.modo-oscuro { position: relative !important; border-radius: 40px !important; padding: 40px !important; margin: 0 auto !important; width: 100% !important; max-width: 1300px !important; box-sizing: border-box !important; }
-body.container.modo-oscuro::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: 
-    linear-gradient(135deg, rgba(30, 41, 59, 0.4) 0%, rgba(15, 23, 42, 0.6) 100%),
-    radial-gradient(circle at 15% 15%, rgba(139, 92, 246, 0.2) 0%, transparent 30%),
-    radial-gradient(circle at 85% 85%, rgba(14, 165, 233, 0.2) 0%, transparent 30%);
-  backdrop-filter: blur(40px) saturate(220%) brightness(1.2);
-  border-radius: 40px;
-  z-index: -1;
-}
-
-body.container.py-5.modo-oscuro {
-  box-shadow: 
-    0 50px 120px rgba(0, 0, 0, 0.8),
-    0 0 0 2px rgba(255, 255, 255, 0.2),
-    inset 0 4px 30px rgba(255, 255, 255, 0.1),
-    inset 0 -4px 20px rgba(0, 0, 0, 0.4) !important;
-}
-
 .card, .card-giratoria { transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.3s cubic-bezier(0.4, 0, 0.2, 1); contain: content; padding: 12px; }
 .card:hover, .card-giratoria:hover { transform: translateY(-5px); will-change: transform, box-shadow; box-shadow: 0 8px 20px rgba(0,0,0,0.3); }
 
