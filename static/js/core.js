@@ -350,7 +350,7 @@ function renderProducto(p, esLCP = false) {
              style="width:100%; height:180px; object-fit:contain; border-radius:4px; cursor:pointer; opacity:0;"
              class="lazy-image"
              onload="this.style.opacity='1'"
-             onclick="openModal('${imagenGrandeEscapada}')"
+             onclick="openModal('${imagenGrandeEscapada}')">
         <div class="card-body">
           <h5 class="card-title" style="font-size: 1.1rem !important;">${p.nombre}</h5>
           
