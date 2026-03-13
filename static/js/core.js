@@ -1549,13 +1549,3 @@ document.getElementById('loginToggleBtn').onclick = () => {
     }, 400);
   });
 });
-
-
-
-
-
-
-
-
-
-
