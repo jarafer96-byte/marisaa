@@ -4,6 +4,7 @@ const email = window.cliente?.email;
 const URL_BACKEND = "https://mpagina.onrender.com";
 const usarFirestore = false;
 
+let cargaCompleta = false;
 let paginaActual = 1;
 let productosFiltradosActuales = [];
 let isMobile = window.matchMedia("(max-width: 767px)").matches;
@@ -263,7 +264,7 @@ function renderProducto(p, esLCP = false) {
   const imagenCard = imagenGrande.includes('_500.webp') 
       ? imagenGrande.replace('_500.webp', '_180.webp') 
       : imagenGrande; // fallback si no tiene sufijo
-  const imagenUrlEscapada = imagenUrl.replace(/'/g, "\\'");
+  const imagenGrandeEscapada = imagenGrande.replace(/'/g, "\\'");
   const grupoEscapado = (p.grupo || "").replace(/'/g, "\\'");
   const subgrupoEscapado = (p.subgrupo || "").replace(/'/g, "\\'");
 
@@ -302,7 +303,6 @@ function renderProducto(p, esLCP = false) {
     </div>
   ` : '';
   
-  const imgSrc = `${imagenUrl}${imagenUrl.includes('?') ? '&' : '?'}format=webp`;
   let imgAttributes = `src="${imagenCard}"`;
   if (!esLCP) {
       imgAttributes += ` data-src="${imagenCard}" loading="lazy"`;
