@@ -289,13 +289,15 @@ function renderProducto(p, esLCP = false) {
   const fotosAdicionalesHTML = fotosAdicionalesSeguras.length > 0 ? `
     <div class="fotos-adicionales mt-2">
       <div class="d-flex flex-wrap mt-1" style="gap: 3px;">
-        ${fotosAdicionalesSeguras.slice(0, 3).map((foto, idx) => `
-          <img src="${foto}" 
-               alt="Foto ${idx+1}" 
-               style="width: 40px; height: 40px; object-fit: cover; border-radius: 3px; cursor: pointer;"
-               onclick="openModal('${foto}')">
-        `).join('')}
-        ${fotosAdicionalesSeguras.length > 3 ? `<span class="ms-1 text-muted">+${fotosAdicionalesSeguras.length - 3}</span>` : ''}
+        ${fotosAdicionalesSeguras.map((foto, idx) => {
+            const miniatura = foto.includes('_500.webp') ? foto.replace('_500.webp', '_58.webp') : foto;
+            return `
+                <img src="${miniatura}" 
+                     alt="Foto ${idx+1}" 
+                     style="width: 40px; height: 40px; object-fit: cover; border-radius: 3px; cursor: pointer;"
+                     onclick="openModal('${foto}')">
+            `;
+        }).join('')}
       </div>
     </div>
   ` : '';
