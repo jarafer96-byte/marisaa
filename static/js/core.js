@@ -272,7 +272,7 @@ function renderProducto(p, esLCP = false) {
     foto.replace(/'/g, "\\'").replace(/"/g, '\\"')
   );
   
-  const onclickAgregar = `agregarAlCarritoDOM('${nombreEscapado}', 'precio_${p.id_base}', 'cantidad_${p.id_base}', '${p.id_base}', '${grupoEscapado}', '${subgrupoEscapado}', '${imagenUrlEscapada}')`;
+  const onclickAgregar = `agregarAlCarritoDOM('${nombreEscapado}', 'precio_${p.id_base}', 'cantidad_${p.id_base}', '${p.id_base}', '${grupoEscapado}', '${subgrupoEscapado}', '${imagenGrandeEscapada}')`;
   
   let whatsappUrl = configWhatsApp;
   
