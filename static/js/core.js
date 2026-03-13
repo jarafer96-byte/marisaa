@@ -259,7 +259,10 @@ function renderProducto(p, esLCP = false) {
 
   const nombreEscapado = p.nombre.replace(/'/g, "\\'").replace(/"/g, '\\"');
   const descripcionEscapada = (p.descripcion || "").replace(/'/g, "\\'").replace(/"/g, '\\"');
-  const imagenUrl = p.imagen_url || '/static/img/fallback.webp';
+  const imagenGrande = p.imagen_url || '/static/img/fallback.webp';
+  const imagenCard = imagenGrande.includes('_500.webp') 
+      ? imagenGrande.replace('_500.webp', '_180.webp') 
+      : imagenGrande; // fallback si no tiene sufijo
   const imagenUrlEscapada = imagenUrl.replace(/'/g, "\\'");
   const grupoEscapado = (p.grupo || "").replace(/'/g, "\\'");
   const subgrupoEscapado = (p.subgrupo || "").replace(/'/g, "\\'");
