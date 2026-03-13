@@ -301,9 +301,9 @@ function renderProducto(p, esLCP = false) {
   ` : '';
   
   const imgSrc = `${imagenUrl}${imagenUrl.includes('?') ? '&' : '?'}format=webp`;
-  let imgAttributes = `src="${imgSrc}"`;
+  let imgAttributes = `src="${imagenCard}"`;
   if (!esLCP) {
-      imgAttributes += ` data-src="${imagenUrl}" loading="lazy"`;
+      imgAttributes += ` data-src="${imagenCard}" loading="lazy"`;
   } else {
       imgAttributes += ` loading="eager" fetchpriority="high"`;
   }
