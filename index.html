@@ -73,20 +73,17 @@ h1, h2, h3, .btn, .card { font-family: 'Raleway', sans-serif; }
         mercado_pago: ""
       };
       
-      window.URL_BACKEND = "https://mpagina.onrender.com"; // Corregido (window, no windo)
+      window.URL_BACKEND = "https://mpagina.onrender.com";
       window.carrito = [];
       
-      // Detectar admin por URL
       const urlParams = new URLSearchParams(window.location.search);
       window.modoAdmin = urlParams.has("token");
       window.tokenAdmin = urlParams.get("token");
       
-      // Reservar espacio para CLS
       const style = document.createElement('style');
       style.textContent = '#productos { min-height: 500px; }';
       document.head.appendChild(style);
-      
-      // Mostrar elementos de admin cuando el DOM esté listo
+
       if (window.modoAdmin) {
         document.addEventListener('DOMContentLoaded', function() {
           const adminCard = document.getElementById('adminCard');
@@ -96,6 +93,11 @@ h1, h2, h3, .btn, .card { font-family: 'Raleway', sans-serif; }
           if (configMP) configMP.classList.remove('d-none');
           if (logoutWrapper) logoutWrapper.style.display = 'block';
         });
+
+        const script = document.createElement('script');
+        script.src = 'static/js/admin.js';
+        script.defer = true;
+        document.head.appendChild(script);
       }
     })();
 </script>    
@@ -324,7 +326,7 @@ h1, h2, h3, .btn, .card { font-family: 'Raleway', sans-serif; }
   <img id="modal-img" style="max-width:90%; max-height:90%;">
 </div>
   
-<script src="static/js/app.js" defer></script>  
+<script src="static/js/core.js" defer></script>
   
 </body>
 </html>
