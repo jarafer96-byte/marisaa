@@ -13,19 +13,16 @@ let isScrolling = false;
 window.stockPorTalleData = {};
 let urlProductos = `https://mpagina.onrender.com/api/productos?usuario=${encodeURIComponent(email)}`;
 
-
 if (window.modoAdmin && window.tokenAdmin) {
   urlProductos += `&token=${encodeURIComponent(window.tokenAdmin)}`;
 }
 
 function getVersionUrl(originalUrl, size) {
-    // Si la URL ya tiene sufijo _500, reemplazarlo por _<size>.webp
     if (originalUrl.includes('_500.webp')) {
         return originalUrl.replace('_500.webp', `_${size}.webp`);
     }
-    // Para imágenes antiguas (sin sufijo), añadir _<size> antes de la extensión
     const lastDot = originalUrl.lastIndexOf('.');
-    if (lastDot === -1) return originalUrl; // sin extensión, devolver original
+    if (lastDot === -1) return originalUrl; 
     const base = originalUrl.substring(0, lastDot);
     return base + `_${size}.webp`;
 }
@@ -1580,4 +1577,3 @@ document.getElementById('loginToggleBtn').onclick = () => {
     }, 400);
   });
 });
-
