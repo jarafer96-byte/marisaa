@@ -123,7 +123,7 @@ h1, h2, h3, .btn, .card { font-family: 'Raleway', sans-serif; }
 </script>    
 </head>
 <body class="container modo-oscuro">
-  
+<main>  
 <div class="text-center logo-wrapper">
   <img src="/static/img/1234.webp"
        alt="Logo"
@@ -152,9 +152,9 @@ h1, h2, h3, .btn, .card { font-family: 'Raleway', sans-serif; }
 </div>
   
   <div class="text-center mt-5 mb-1">
-    <select id="ordenPrecio" class="form-select w-auto d-inline-block">
+    <select id="ordenPrecio" class="form-select w-auto d-inline-block" aria-label="Ordenar productos por precio">
       <option value="asc" selected>Precio: Menor a mayor</option>
-      <option value="desc">Precio: Mayor a menor</option>
+     <option value="desc">Precio: Mayor a menor</option>
     </select>
   </div>
   
@@ -275,6 +275,8 @@ h1, h2, h3, .btn, .card { font-family: 'Raleway', sans-serif; }
          height="24">
   </a>
 </div>
+  
+</main> 
   
 <div id="loginFloatingForm" style="position:fixed; bottom:70px; left:50%; transform:translateX(-50%); z-index:999; display:none; background:rgba(0,0,0,0.9); padding:15px; border-radius:10px; width:250px;">
   <form onsubmit="loginAdmin(event)">
