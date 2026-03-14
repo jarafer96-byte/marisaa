@@ -388,7 +388,8 @@ function renderProducto(p, esLCP = false) {
             <input type="number" min="1" max="${stockInicial > 0 ? stockInicial : 1}" value="1"
                    id="cantidad_${p.id_base}"
                    class="form-control form-control-sm" style="width: 70px;"
-                   ${stockInicial <= 0 ? "disabled" : ""}>
+                   ${stockInicial <= 0 ? "disabled" : ""}
+                   aria-label="Cantidad de ${p.nombre}">
             
             <button type="button" class="btn btn-secondary btn-sm" id="btn_agregar_${p.id_base}"
               onclick="${onclickAgregar}"
