@@ -82,7 +82,11 @@ body.container.py-5.modo-oscuro {
 h1, h2, h3, .btn, .card { font-family: 'Raleway', sans-serif; }
 .logo-wrapper {  width: 100%; max-width: 230px;  height: min(80vw, 230px); margin: 2rem auto !important; display: flex !important; align-items: center !important; justify-content: center !important; contain: layout style paint !important; }
 .logo { width: 80% !important; height: 80% !important;  max-width: 80% !important; max-height: 80% !important; object-fit: contain !important; filter: brightness(1.2) drop-shadow(0 0 10px violet); transition: filter 0.3s ease; animation: pulsoLogo 4s ease-in-out infinite; }
-  
+.descripcion-emprendimiento { height: 120px !important; min-height: 120px !important; max-height: 120px !important; margin-left: auto !important; margin-right: auto !important; text-align: center !important; width: fit-content !important; max-width: 90% !important; display: flex !important; flex-direction: column !important; align-items: center !important; justify-content: center !important; padding: 15px !important; box-sizing: border-box !important; overflow: hidden !important; contain: layout style paint !important; font-size: 16px !important; line-height: 1.6 !important; background-color: rgba(0, 0, 0, 0.5) !important; color: white !important; border-radius: 10px !important; box-shadow: 0 0 6px rgba(255,255,255,0.3) !important; }
+@media (max-width: 768px) {
+  #ubicacion, .bloque-ubicacion { flex-wrap: wrap !important; gap: 5px !important; padding: 10px !important; height: auto !important; min-height: 95px !important; max-width: 95% !important; }
+  .descripcion-emprendimiento { height: auto !important; min-height: 100px !important; padding: 12px !important; font-size: 14px !important; line-height: 1.5 !important; max-width: 95% !important; }
+}  
 </style>
 <link rel="preload" href="static/css/estilos.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
 <noscript><link rel="stylesheet" href="static/css/estilos.min.css"></noscript>
