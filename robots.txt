@@ -1,3 +1,2 @@
 User-agent: *
 Allow: /
-Sitemap: https://marisaa.pages.dev/sitemap.xml
