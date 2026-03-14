@@ -301,7 +301,7 @@ function renderProducto(p, esLCP = false) {
     <div class="fotos-adicionales mt-2">
       <div class="d-flex flex-wrap mt-1" style="gap: 3px;">
         ${fotosAdicionalesSeguras.map((foto, idx) => {
-            const miniatura = foto.includes('_500.webp') ? foto.replace('_500.webp', '_58.webp') : foto;
+            const miniatura = getVersionUrl(foto, '58');
             return `
                 <img src="${miniatura}" 
                      alt="Foto ${idx+1}" 
