@@ -276,7 +276,8 @@ function renderProducto(p, esLCP = false) {
   const imagenGrandeEscapada = imagenGrande.replace(/'/g, "\\'");
   const grupoEscapado = (p.grupo || "").replace(/'/g, "\\'");
   const subgrupoEscapado = (p.subgrupo || "").replace(/'/g, "\\'");
-
+  const imagenCard = getVersionUrl(imagenGrande, '180');
+  
   const fotosAdicionalesSeguras = (p.fotos_adicionales || []).map(foto => 
     foto.replace(/'/g, "\\'").replace(/"/g, '\\"')
   );
