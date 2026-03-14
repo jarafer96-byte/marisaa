@@ -1418,17 +1418,25 @@ document.addEventListener('DOMContentLoaded', () => {
 function cargarMercadoPagoJS() {
   return new Promise((resolve, reject) => {
     if (window.mercadoPagoCargado) return resolve();
-    const script = document.createElement('script');
-    script.src = 'static/js/mercadopago.js';
-    script.onload = async () => {
-      window.mercadoPagoCargado = true;
-      if (typeof window.initMercadoPago === 'function') {
-        window.initMercadoPago().catch(console.warn);
-      }
-      resolve();
+
+    const cargar = () => {
+      const script = document.createElement('script');
+      script.src = 'static/js/mercadopago.js';
+      script.async = true; // No bloquea el renderizado
+      script.onload = async () => {
+        window.mercadoPagoCargado = true;
+        resolve();
+      };
+      script.onerror = reject;
+      document.head.appendChild(script);
     };
-    script.onerror = reject;
-    document.head.appendChild(script);
+
+    // Diferir la carga a un momento de inactividad
+    if ('requestIdleCallback' in window) {
+      requestIdleCallback(cargar, { timeout: 2000 });
+    } else {
+      setTimeout(cargar, 1000); // fallback para navegadores antiguos
+    }
   });
 }
 
