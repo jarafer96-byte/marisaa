@@ -204,16 +204,13 @@ function renderProducto(p, esLCP = false) {
   card.dataset.id = p.id_base;
   card.dataset.precio = p.precio;
   
-  // Ya no usamos safeId para onclick, pero lo dejamos comentado por si acaso
-  // const safeId = JSON.stringify(p.id_base);
-  
   const precioActual = parseFloat(p.precio) || 0;
   let precioAnterior = parseFloat(p.precio_anterior) || 0;
   let esOferta = precioAnterior > 0 && precioAnterior > precioActual;
   const descuentoPorcentaje = esOferta ? 
     Math.round(((precioAnterior - precioActual) / precioAnterior) * 100) : 0;
 
-  // Si no hay oferta pero el producto completo tiene precio_anterior, lo usamos
+  // Verificar si el producto completo tiene precio_anterior (por si acaso)
   if (!esOferta && window.todosLosProductos) {
     const productoCompleto = window.todosLosProductos.find(prod => prod.id_base === p.id_base);
     if (productoCompleto && productoCompleto.precio_anterior) {
@@ -281,7 +278,7 @@ function renderProducto(p, esLCP = false) {
   
   const onclickAgregar = `agregarAlCarritoDOM('${nombreEscapado}', 'precio_${p.id_base}', 'cantidad_${p.id_base}', '${p.id_base}', '${grupoEscapado}', '${subgrupoEscapado}', '${imagenGrandeEscapada}')`;
   
-  let whatsappUrl = window.configWhatsApp; // Asegurar que exista en el ámbito global
+  let whatsappUrl = window.configWhatsApp;
   
   if (whatsappUrl && whatsappUrl.includes("wa.me")) {
     const mensaje = encodeURIComponent(`Hola! Me interesa el producto: "${p.nombre}" - Precio: $${p.precio}\n\n¿Podrías darme más información?`);
@@ -426,29 +423,26 @@ function renderProducto(p, esLCP = false) {
           scrollbar-width: none;
           -ms-overflow-style: none;
         ">
-          <div class="descripcion-area::-webkit-scrollbar {
-            display: none;
-          }">
-            ${p.descripcion ? `
-              <div style="
-                font-size: 1rem;
-                line-height: 1.5;
-                color: #f8f9fa;
-                white-space: pre-line;
-                max-height: 100%;
-              ">
-                ${p.descripcion}
-              </div>
-            ` : `
-              <div style="
-                font-size: 1rem;
-                color: #adb5bd;
-                font-style: italic;
-              ">
-                Este producto no tiene descripción adicional.
-              </div>
-            `}
-          </div>
+          <!-- Eliminado el selector CSS inválido que estaba dentro del HTML -->
+          ${p.descripcion ? `
+            <div style="
+              font-size: 1rem;
+              line-height: 1.5;
+              color: #f8f9fa;
+              white-space: pre-line;
+              max-height: 100%;
+            ">
+              ${p.descripcion}
+            </div>
+          ` : `
+            <div style="
+              font-size: 1rem;
+              color: #adb5bd;
+              font-style: italic;
+            ">
+              Este producto no tiene descripción adicional.
+            </div>
+          `}
         </div>
         
         <div class="card-back-footer" style="
@@ -476,7 +470,7 @@ function renderProducto(p, esLCP = false) {
           
           ${window.modoAdmin ? `
             <div class="mt-2 d-flex gap-2">
-              <button type="button" class="btn btn-info btn-sm flex-fill btn-duplicar" data-id-base="${idBaseEscapado}" style="background-color: azure;">
+              <button type="button" class="btn btn-info btn-sm flex-fill btn-duplicar" style="background-color: azure;" data-id-base="${idBaseEscapado}">
                 📋 Duplicar
               </button>
               <button type="button" class="btn btn-warning btn-sm flex-fill btn-editar" data-id-base="${idBaseEscapado}">
@@ -500,17 +494,20 @@ function renderProducto(p, esLCP = false) {
     const btnEliminar = card.querySelector('.btn-eliminar');
 
     if (btnDuplicar) {
-      btnDuplicar.addEventListener('click', () => {
+      btnDuplicar.addEventListener('click', (e) => {
+        e.preventDefault();
         duplicarProductoDesdeCard(p.id_base);
       });
     }
     if (btnEditar) {
-      btnEditar.addEventListener('click', () => {
+      btnEditar.addEventListener('click', (e) => {
+        e.preventDefault();
         editarProductoDesdeCard(p.id_base);
       });
     }
     if (btnEliminar) {
-      btnEliminar.addEventListener('click', () => {
+      btnEliminar.addEventListener('click', (e) => {
+        e.preventDefault();
         eliminarProducto(p.id_base);
       });
     }
