@@ -203,7 +203,8 @@ function renderProducto(p, esLCP = false) {
   card.className = "col-lg-4 col-md-6 col-sm-12 mb-4 fade-reorder card-producto";
   card.dataset.id = p.id_base;
   card.dataset.precio = p.precio;
-
+  
+  const safeId = JSON.stringify(p.id_base);
   const precioActual = parseFloat(p.precio) || 0;
   const precioAnterior = parseFloat(p.precio_anterior) || 0;
 
