@@ -480,17 +480,15 @@ function renderProducto(p, esLCP = false) {
             </button>
           </div>
           
-          ${window.modoAdmin ? `
+         ${window.modoAdmin ? `
   <div class="mt-2 d-flex gap-2">
-    <button type="button" class="btn btn-info btn-sm flex-fill" style="background-color: azure;" onclick="duplicarProductoDesdeCard(${safeId})">
+    <button type="button" class="btn btn-info btn-sm flex-fill" style="background-color: azure;" btn-duplicar" data-id-base="${p.id_base.replace(/"/g, '&quot;')}">
       📋 Duplicar
     </button>
-    <button type="button" class="btn btn-warning btn-sm flex-fill"
-      onclick="editarProductoDesdeCard(${safeId})">
+    <button type="button" class="btn btn-warning btn-sm flex-fill btn-editar" data-id-base="${p.id_base.replace(/"/g, '&quot;')}">
       ✏️ Editar
     </button>
-    <button type="button" class="btn btn-danger btn-sm flex-fill"
-      onclick="eliminarProducto(${safeId})">
+    <button type="button" class="btn btn-danger btn-sm flex-fill btn-eliminar" data-id-base="${p.id_base.replace(/"/g, '&quot;')}">
       🗑️ Eliminar
     </button>
   </div>
