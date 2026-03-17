@@ -495,7 +495,8 @@ async function eliminarProducto(id_base) {
     });
     const data = await resp.json();
     if (data.status === "ok") {
-      const card = document.querySelector(`[data-id="${id_base}"]`);
+      const escapedId = id_base.replace(/"/g, '\\"').replace(/'/g, "\\'");
+      const card = document.querySelector(`[data-id="${escapedId}"]`);
       if (card) card.remove();
     } else {
       alert("Error al eliminar producto: " + data.error);
