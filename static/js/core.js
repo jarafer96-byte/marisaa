@@ -278,8 +278,8 @@ function renderProducto(p, esLCP = false) {
   
   const onclickAgregar = `agregarAlCarritoDOM('${nombreEscapado}', 'precio_${p.id_base}', 'cantidad_${p.id_base}', '${p.id_base}', '${grupoEscapado}', '${subgrupoEscapado}', '${imagenGrandeEscapada}')`;
   
-  let whatsappUrl = window.configWhatsApp;
-  
+  let whatsappUrl = window.cliente?.whatsapp || '';
+
   if (whatsappUrl && whatsappUrl.includes("wa.me")) {
     const mensaje = encodeURIComponent(`Hola! Me interesa el producto: "${p.nombre}" - Precio: $${p.precio}\n\n¿Podrías darme más información?`);
     const match = whatsappUrl.match(/wa\.me\/(\d+)/);
@@ -287,10 +287,11 @@ function renderProducto(p, esLCP = false) {
       const numero = match[1];
       whatsappUrl = `https://wa.me/${numero}?text=${mensaje}`;
     } else {
-      whatsappUrl = `${whatsappUrl}?text=${mensaje}`;
+      whatsappUrl = whatsappUrl.includes('?') 
+        ? `${whatsappUrl}&text=${mensaje}`
+        : `${whatsappUrl}?text=${mensaje}`;
     }
   }
-
   const fotosAdicionalesHTML = fotosAdicionalesSeguras.length > 0 ? `
     <div class="fotos-adicionales mt-2">
       <div class="d-flex flex-wrap mt-1" style="gap: 3px;">
