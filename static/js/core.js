@@ -204,20 +204,23 @@ function renderProducto(p, esLCP = false) {
   card.dataset.id = p.id_base;
   card.dataset.precio = p.precio;
   
-  const safeId = JSON.stringify(p.id_base);
+  // Ya no usamos safeId para onclick, pero lo dejamos comentado por si acaso
+  // const safeId = JSON.stringify(p.id_base);
+  
   const precioActual = parseFloat(p.precio) || 0;
-  const precioAnterior = parseFloat(p.precio_anterior) || 0;
-
-  const esOferta = precioAnterior > 0 && precioAnterior > precioActual;
+  let precioAnterior = parseFloat(p.precio_anterior) || 0;
+  let esOferta = precioAnterior > 0 && precioAnterior > precioActual;
   const descuentoPorcentaje = esOferta ? 
     Math.round(((precioAnterior - precioActual) / precioAnterior) * 100) : 0;
 
+  // Si no hay oferta pero el producto completo tiene precio_anterior, lo usamos
   if (!esOferta && window.todosLosProductos) {
     const productoCompleto = window.todosLosProductos.find(prod => prod.id_base === p.id_base);
-    if (productoCompleto) {
-      if (productoCompleto.precio_anterior && productoCompleto.precio_anterior > precioActual) {
-        precioAnterior = parseFloat(productoCompleto.precio_anterior) || 0;
-        esOferta = precioAnterior > 0 && precioAnterior > precioActual;
+    if (productoCompleto && productoCompleto.precio_anterior) {
+      const anterior = parseFloat(productoCompleto.precio_anterior);
+      if (anterior > precioActual) {
+        precioAnterior = anterior;
+        esOferta = true;
       }
     }
   }
@@ -265,11 +268,7 @@ function renderProducto(p, esLCP = false) {
     stockInicial = stockGeneral;
   }
   
-  const mostrarStock = stockInicial > 0 ? stockInicial : "Sin stock";
-  const claseStock = stockInicial > 0 ? "" : "text-danger";
-
   const nombreEscapado = p.nombre.replace(/'/g, "\\'").replace(/"/g, '\\"');
-  const descripcionEscapada = (p.descripcion || "").replace(/'/g, "\\'").replace(/"/g, '\\"');
   const imagenGrande = p.imagen_url || '/static/img/fallback.webp';
   const imagenGrandeEscapada = imagenGrande.replace(/'/g, "\\'");
   const grupoEscapado = (p.grupo || "").replace(/'/g, "\\'");
@@ -282,16 +281,16 @@ function renderProducto(p, esLCP = false) {
   
   const onclickAgregar = `agregarAlCarritoDOM('${nombreEscapado}', 'precio_${p.id_base}', 'cantidad_${p.id_base}', '${p.id_base}', '${grupoEscapado}', '${subgrupoEscapado}', '${imagenGrandeEscapada}')`;
   
-  let whatsappUrl = configWhatsApp;
+  let whatsappUrl = window.configWhatsApp; // Asegurar que exista en el ámbito global
   
-  if (configWhatsApp && configWhatsApp.includes("wa.me")) {
+  if (whatsappUrl && whatsappUrl.includes("wa.me")) {
     const mensaje = encodeURIComponent(`Hola! Me interesa el producto: "${p.nombre}" - Precio: $${p.precio}\n\n¿Podrías darme más información?`);
-    const match = configWhatsApp.match(/wa\.me\/(\d+)/);
+    const match = whatsappUrl.match(/wa\.me\/(\d+)/);
     if (match) {
       const numero = match[1];
       whatsappUrl = `https://wa.me/${numero}?text=${mensaje}`;
     } else {
-      whatsappUrl = `${configWhatsApp}?text=${mensaje}`;
+      whatsappUrl = `${whatsappUrl}?text=${mensaje}`;
     }
   }
 
@@ -318,10 +317,13 @@ function renderProducto(p, esLCP = false) {
       imgAttributes += ` loading="eager" fetchpriority="high"`;
   }
   
+  // Escapamos el ID para usarlo en atributos HTML (solo comillas dobles)
+  const idBaseEscapado = p.id_base.replace(/"/g, '&quot;');
+  
   card.innerHTML = `
   <div class="card-giratoria">
     <div class="card-contenedor">
-      <!-- FRENTE (COMPLETO) -->
+      <!-- FRENTE -->
       <div class="card-front">
         ${esOferta ? `
           <div class="oferta-badge" style="
@@ -346,10 +348,7 @@ function renderProducto(p, esLCP = false) {
           </div>
         ` : ''}
         
-        <!-- Botón para girar -->
-        <button class="btn-girar" onclick="girarCard(this)">
-          🔄
-        </button>
+        <button class="btn-girar" onclick="girarCard(this)">🔄</button>
         
         <img ${imgAttributes}
              alt="${p.nombre}"
@@ -374,17 +373,17 @@ function renderProducto(p, esLCP = false) {
           </p>
           
           ${Object.keys(stockData).length > 0 && Object.keys(stockData)[0] !== "unico" ? `
-  <div class="mb-2 d-flex align-items-center gap-2">
-    <label class="mb-0"><strong>Talle:</strong></label>
-    <select id="talle_${p.id_base}" class="form-select form-select-sm w-auto"
-            onchange="actualizarStockPorTalle('${p.id_base}', this.value)"
-            style="min-width: 160px; max-width: 180px;"
-            aria-label="Seleccionar talle para ${p.nombre}">
-      <option value="">-</option>
-      ${opcionesTalles}
-    </select>
-  </div>
-` : ""}
+            <div class="mb-2 d-flex align-items-center gap-2">
+              <label class="mb-0"><strong>Talle:</strong></label>
+              <select id="talle_${p.id_base}" class="form-select form-select-sm w-auto"
+                      onchange="actualizarStockPorTalle('${p.id_base}', this.value)"
+                      style="min-width: 160px; max-width: 180px;"
+                      aria-label="Seleccionar talle para ${p.nombre}">
+                <option value="">-</option>
+                ${opcionesTalles}
+              </select>
+            </div>
+          ` : ""}
           
           <div class="mt-3 d-flex align-items-center gap-2">
             <input type="number" min="1" max="${stockInicial > 0 ? stockInicial : 1}" value="1"
@@ -413,14 +412,10 @@ function renderProducto(p, esLCP = false) {
         </div>
       </div>
       
-      <!-- REVERSO (SOLO DESCRIPCIÓN) -->
+      <!-- REVERSO -->
       <div class="card-back" style="display: flex; flex-direction: column; height: 100%;">
-        <!-- Botón para volver al frente (arriba a la derecha) -->
-        <button class="btn-reversa" onclick="girarCard(this)" style="position: absolute; top: 10px; right: 10px;">
-          ↩️
-        </button>
+        <button class="btn-reversa" onclick="girarCard(this)" style="position: absolute; top: 10px; right: 10px;">↩️</button>
         
-        <!-- ÁREA DE DESCRIPCIÓN (OCUPA TODO EL ESPACIO DISPONIBLE) -->
         <div class="descripcion-area" style="
           flex: 1;
           padding: 80px 80px 80px 80px;
@@ -456,7 +451,6 @@ function renderProducto(p, esLCP = false) {
           </div>
         </div>
         
-        <!-- SECCIÓN INFERIOR (FUERA DEL ÁREA DE DESCRIPCIÓN) -->
         <div class="card-back-footer" style="
           padding: 15px;
           border-top: 1px solid rgba(255,255,255,0.1);
@@ -480,25 +474,49 @@ function renderProducto(p, esLCP = false) {
             </button>
           </div>
           
-         ${window.modoAdmin ? `
-  <div class="mt-2 d-flex gap-2">
-    <button type="button" class="btn btn-info btn-sm flex-fill" style="background-color: azure;" btn-duplicar" data-id-base="${p.id_base.replace(/"/g, '&quot;')}">
-      📋 Duplicar
-    </button>
-    <button type="button" class="btn btn-warning btn-sm flex-fill btn-editar" data-id-base="${p.id_base.replace(/"/g, '&quot;')}">
-      ✏️ Editar
-    </button>
-    <button type="button" class="btn btn-danger btn-sm flex-fill btn-eliminar" data-id-base="${p.id_base.replace(/"/g, '&quot;')}">
-      🗑️ Eliminar
-    </button>
-  </div>
-` : ""}
+          ${window.modoAdmin ? `
+            <div class="mt-2 d-flex gap-2">
+              <button type="button" class="btn btn-info btn-sm flex-fill btn-duplicar" data-id-base="${idBaseEscapado}" style="background-color: azure;">
+                📋 Duplicar
+              </button>
+              <button type="button" class="btn btn-warning btn-sm flex-fill btn-editar" data-id-base="${idBaseEscapado}">
+                ✏️ Editar
+              </button>
+              <button type="button" class="btn btn-danger btn-sm flex-fill btn-eliminar" data-id-base="${idBaseEscapado}">
+                🗑️ Eliminar
+              </button>
+            </div>
+          ` : ""}
         </div>
       </div>
     </div>
   </div>
 `;
 
+  // Asignar event listeners para los botones de admin (solo si está en modo admin)
+  if (window.modoAdmin) {
+    const btnDuplicar = card.querySelector('.btn-duplicar');
+    const btnEditar = card.querySelector('.btn-editar');
+    const btnEliminar = card.querySelector('.btn-eliminar');
+
+    if (btnDuplicar) {
+      btnDuplicar.addEventListener('click', () => {
+        duplicarProductoDesdeCard(p.id_base);
+      });
+    }
+    if (btnEditar) {
+      btnEditar.addEventListener('click', () => {
+        editarProductoDesdeCard(p.id_base);
+      });
+    }
+    if (btnEliminar) {
+      btnEliminar.addEventListener('click', () => {
+        eliminarProducto(p.id_base);
+      });
+    }
+  }
+
+  // Inicializar el talle por defecto si existe
   if (talleInicial) {
     setTimeout(() => {
       const talleSelect = document.getElementById(`talle_${p.id_base}`);
