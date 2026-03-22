@@ -1,6 +1,6 @@
 window.todosLosProductos = window.todosLosProductos || [];
 
-async function guardarProducto(producto, formDiv) {
+async function guardarProducto(producto, formDiv, skipReload = false) {
   const email = window.cliente?.email;
   if (!email) {
     alert("❌ No hay email de admin, no se puede guardar");
@@ -40,8 +40,11 @@ async function guardarProducto(producto, formDiv) {
       if (typeof mostrarToast === 'function') {
         mostrarToast(`✅ ${producto.nombre} guardado`);
       }
-      await recargarProductos();
-      renderTablaProductos();
+      // Solo recargar si no es un guardado en lote
+      if (!skipReload) {
+        await recargarProductos();
+        renderTablaProductos();
+      }
       return true;
     } else {
       throw new Error(data.error || data.message || "Error al guardar producto");
@@ -985,16 +988,28 @@ async function guardarTodosProductos() {
   });
 
   let guardados = 0;
+  const errores = [];
   for (const producto of productosAGuardar) {
     try {
       const formDiv = { dataset: { idBase: producto.id_base } };
-      const resultado = await guardarProducto(producto, formDiv);
+      const resultado = await guardarProducto(producto, formDiv, true); // skipReload = true
       if (resultado) guardados++;
     } catch (error) {
       console.error('Error guardando producto:', producto.nombre, error);
+      errores.push(producto.nombre);
     }
   }
-  alert(`Guardados ${guardados} de ${productosAGuardar.length} productos.`);
+
+  // Después de guardar todos, recargar una sola vez y refrescar la vista
+  await recargarProductos();
+  renderTablaProductos();
+
+  const mensaje = `Guardados ${guardados} de ${productosAGuardar.length} productos.`;
+  if (errores.length) {
+    alert(`${mensaje}\nErrores: ${errores.join(', ')}`);
+  } else {
+    alert(mensaje);
+  }
 }
 
 
@@ -1039,6 +1054,7 @@ if (window.modoAdmin) {
   const tableView = document.getElementById('tableView');
   if (tableView) tableView.style.display = 'block';
 
+  // Cargar productos y renderizar tabla
   recargarProductos().then(() => {
     renderTablaProductos();
     setTimeout(() => {
@@ -1046,21 +1062,194 @@ if (window.modoAdmin) {
       if (primerGrupo) {
         primerGrupo.click();
       }
-    }, 50); // pequeño retraso para asegurar que el DOM esté listo
+    }, 50);
   });
 
-  document.addEventListener('click', (e) => {
-    if (e.target.id === 'btnNuevoProductoTabla') {
-      e.preventDefault();
-      agregarNuevoProducto();
-    }
-    if (e.target.id === 'guardarTodosTablaBtn') {
-      e.preventDefault();
-      guardarTodosProductos();
-    }
-    if (e.target.id === 'btnNuevoGrupo') {
-      e.preventDefault();
-      agregarNuevoGrupo();
+  // --- LISTENER DELEGADO ÚNICO ---
+  const adminContainer = document.getElementById('adminFormsContainer');
+  if (adminContainer) {
+    adminContainer.addEventListener('click', async (e) => {
+      const target = e.target;
+
+      // Botón: Guardar todos
+      if (target.id === 'guardarTodosTablaBtn') {
+        e.preventDefault();
+        await guardarTodosProductos();
+        return;
+      }
+
+      // Botón: Nuevo producto
+      if (target.id === 'btnNuevoProductoTabla') {
+        e.preventDefault();
+        agregarNuevoProducto();
+        return;
+      }
+
+      // Botón: Nuevo grupo (barra horizontal)
+      if (target.id === 'adminBtnNuevoGrupo') {
+        e.preventDefault();
+        agregarNuevoGrupo();
+        return;
+      }
+
+      // Botón: Nuevo subgrupo (dinámico)
+      if (target.classList.contains('agregar-subgrupo-btn')) {
+        e.preventDefault();
+        const grupo = target.dataset.grupo;
+        if (grupo) agregarSubgrupo(grupo);
+        return;
+      }
+
+      // Botón: Guardar producto individual
+      if (target.classList.contains('guardar-producto')) {
+        e.preventDefault();
+        const idBase = target.dataset.id;
+        const fila = target.closest('tr');
+        if (fila && idBase) {
+          const producto = obtenerProductoDesdeFila(fila, idBase);
+          await guardarProducto(producto, { dataset: { idBase } }, true); // skipReload = true
+        }
+        return;
+      }
+
+      // Botón: Duplicar producto
+      if (target.classList.contains('duplicar-producto')) {
+        e.preventDefault();
+        const idBase = target.dataset.id;
+        if (idBase) duplicarProductoDesdeCard(idBase);
+        return;
+      }
+
+      // Botón: Eliminar producto
+      if (target.classList.contains('eliminar-producto')) {
+        e.preventDefault();
+        const idBase = target.dataset.id;
+        if (idBase && confirm('¿Eliminar este producto?')) {
+          eliminarProducto(idBase);
+        }
+        return;
+      }
+
+      // Agregar fila de color
+      if (target.classList.contains('agregar-fila-color')) {
+        e.preventDefault();
+        agregarFilaColor(target);
+        return;
+      }
+
+      // Eliminar foto extra
+      if (target.classList.contains('eliminar-foto-extra')) {
+        e.preventDefault();
+        const idBase = target.dataset.id;
+        const url = target.dataset.url;
+        if (idBase && url) eliminarFotoExtra(idBase, url);
+        return;
+      }
+
+      // Agregar foto extra
+      if (target.classList.contains('agregar-foto-extra')) {
+        e.preventDefault();
+        agregarFotoExtra(target);
+        return;
+      }
+
+      // Cambiar imagen principal
+      if (target.classList.contains('agregar-imagen-principal')) {
+        e.preventDefault();
+        agregarImagenPrincipal(target);
+        return;
+      }
+
+      // Eliminar color de una fila (dentro de colores-stock)
+      if (target.classList.contains('eliminar-color') || target.classList.contains('eliminar-fila-color')) {
+        e.preventDefault();
+        const filaColor = target.closest('.fila-color');
+        if (filaColor) filaColor.remove();
+        return;
+      }
+
+      // Botones de grupo (seleccionar grupo)
+      if (target.classList.contains('grupo-btn')) {
+        e.preventDefault();
+        const grupo = target.dataset.grupo;
+        if (grupo) filtrarProductos(grupo);
+        return;
+      }
+
+      // Botón toggle de subgrupos (▼)
+      if (target.classList.contains('subgrupo-toggle-btn')) {
+        e.preventDefault();
+        const grupo = target.dataset.grupo;
+        if (grupo) {
+          const barraSub = document.getElementById('adminSubgruposBar');
+          if (barraSub.style.display === 'flex' && barraSub.dataset.currentGroup === grupo) {
+            ocultarSubgrupos();
+          } else {
+            mostrarSubgruposHorizontal(grupo);
+            barraSub.dataset.currentGroup = grupo;
+          }
+        }
+        return;
+      }
+
+      // Botón de subgrupo (seleccionar)
+      if (target.classList.contains('subgrupo-btn')) {
+        e.preventDefault();
+        const grupo = target.dataset.grupo;
+        const subgrupo = target.dataset.subgrupo;
+        if (grupo && subgrupo) filtrarProductos(grupo, subgrupo);
+        return;
+      }
+
+      // Cambio en el toggle talle (dentro de fila color)
+      if (target.classList.contains('talle-toggle')) {
+        // Este cambio se maneja con event listener aparte, pero también podría ir aquí.
+        // Lo dejamos en el change original, pero como es un cambio no un clic, lo mantenemos.
+        // No hacemos nada aquí.
+        return;
+      }
+    });
+  }
+
+  // Manejar cambios en los toggles de talle (separado porque es evento change, no click)
+  adminContainer.addEventListener('change', (e) => {
+    const target = e.target;
+    if (target.classList.contains('talle-toggle')) {
+      const filaColor = target.closest('.fila-color');
+      if (!filaColor) return;
+      const inputDinamico = filaColor.querySelector('.talles-input, .stock-input');
+      if (!inputDinamico) return;
+      const estaMarcado = target.checked;
+      if (estaMarcado) {
+        let valorActual = inputDinamico.value;
+        if (inputDinamico.type === 'number') {
+          const stock = parseInt(valorActual, 10) || 0;
+          valorActual = `unico:${stock}`;
+        }
+        inputDinamico.type = 'text';
+        inputDinamico.classList.remove('stock-input');
+        inputDinamico.classList.add('talles-input');
+        inputDinamico.placeholder = 'S:30, M:20';
+        inputDinamico.value = valorActual;
+      } else {
+        let valorActual = inputDinamico.value;
+        let stock = 0;
+        if (inputDinamico.type === 'text') {
+          const tallesObj = parsearTallesStock(valorActual);
+          if (tallesObj['unico']) {
+            stock = tallesObj['unico'];
+          } else {
+            stock = Object.values(tallesObj).reduce((a, b) => a + b, 0);
+          }
+        } else {
+          stock = parseInt(valorActual, 10) || 0;
+        }
+        inputDinamico.type = 'number';
+        inputDinamico.classList.remove('talles-input');
+        inputDinamico.classList.add('stock-input');
+        inputDinamico.placeholder = 'Stock';
+        inputDinamico.value = stock;
+      }
     }
   });
 }
