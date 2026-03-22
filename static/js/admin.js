@@ -1041,6 +1041,12 @@ if (window.modoAdmin) {
 
   recargarProductos().then(() => {
     renderTablaProductos();
+    setTimeout(() => {
+      const primerGrupo = document.querySelector('.grupo-btn');
+      if (primerGrupo) {
+        primerGrupo.click();
+      }
+    }, 50); // pequeño retraso para asegurar que el DOM esté listo
   });
 
   document.addEventListener('click', (e) => {
