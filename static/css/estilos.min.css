@@ -5,14 +5,14 @@
   width: 100%;
   height: 100%;
   min-height: 100vh;
-  background-image: url('/static/img/ciudad1.jpg');
+  background-image: url('/static/img/ciudad1.webp');
   background-size: cover;
   background-position: center;
   z-index: -2;
 }
 .main-content {
   position: relative;
-  z-index: 1;           /* sobre el esmerilado */
+  z-index: 1;         
 }
 
 
