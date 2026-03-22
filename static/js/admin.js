@@ -450,7 +450,6 @@ function renderTablaProductos() {
   `;
 
   container.innerHTML = html;
-  asignarEventosAcciones();
 }
 
 
@@ -668,7 +667,6 @@ function filtrarProductos(grupo, subgrupo = null) {
   const tbody = document.getElementById('tabla-productos-body');
   if (tbody) {
     tbody.innerHTML = renderFilasTabla(filtrados);
-    asignarEventosAcciones();
   }
 
   const grupoBtns = document.querySelectorAll('.grupo-btn');
@@ -782,150 +780,6 @@ function obtenerProductoDesdeFila(fila, idBase) {
   }
 
   return producto;
-}
-
-
-function asignarEventosAcciones() {
-  document.querySelectorAll('.guardar-producto').forEach(btn => {
-    btn.addEventListener('click', async (e) => {
-      const idBase = btn.dataset.id;
-      const fila = btn.closest('tr');
-      if (!fila) return;
-      const producto = obtenerProductoDesdeFila(fila, idBase);
-      await guardarProducto(producto, { dataset: { idBase } });
-    });
-  });
-
-  document.querySelectorAll('.duplicar-producto').forEach(btn => {
-    btn.addEventListener('click', () => duplicarProductoDesdeCard(btn.dataset.id));
-  });
-
-  document.querySelectorAll('.eliminar-producto').forEach(btn => {
-    btn.addEventListener('click', () => {
-      if (confirm('¿Eliminar este producto?')) {
-        eliminarProducto(btn.dataset.id);
-      }
-    });
-  });
-
-  const tableView = document.getElementById('tableView');
-  if (!tableView) return;
-
-  tableView.addEventListener('click', (e) => {
-    const target = e.target;
-
-    if (target.classList.contains('agregar-fila-color')) {
-      e.preventDefault();
-      agregarFilaColor(target);
-    }
-    if (target.classList.contains('agregar-subgrupo-btn')) {
-      e.preventDefault();
-      const grupo = target.dataset.grupo;
-      if (grupo) agregarSubgrupo(grupo);
-    }
-    if (target.classList.contains('eliminar-foto-extra')) {
-      e.preventDefault();
-      const idBase = target.dataset.id;
-      const url = target.dataset.url;
-      eliminarFotoExtra(idBase, url);
-    }
-    if (target.classList.contains('eliminar-color')) {
-      e.preventDefault();
-      const filaColor = target.closest('.fila-color');
-      if (filaColor) filaColor.remove();
-    }
-    if (target.classList.contains('agregar-imagen-principal')) {
-      e.preventDefault();
-      agregarImagenPrincipal(target);
-    }
-    if (target.classList.contains('agregar-foto-extra')) {
-      e.preventDefault();
-      agregarFotoExtra(target);
-    }
-    if (target.classList.contains('grupo-btn')) {
-      e.preventDefault();
-      const grupo = target.dataset.grupo;
-      if (!grupo) return;
-      filtrarProductos(grupo);
-      mostrarSubgruposHorizontal(grupo);
-    }
-    if (target.classList.contains('subgrupo-toggle-btn')) {
-      e.preventDefault();
-      const grupo = target.dataset.grupo;
-      if (!grupo) return;
-      const barraSub = document.getElementById('adminSubgruposBar');
-      if (barraSub.style.display === 'flex' && barraSub.dataset.currentGroup === grupo) {
-        ocultarSubgrupos();
-      } else {
-        mostrarSubgruposHorizontal(grupo);
-        barraSub.dataset.currentGroup = grupo;
-      }
-    }
-    if (target.classList.contains('subgrupo-btn')) {
-      e.preventDefault();
-      const grupo = target.dataset.grupo;
-      const subgrupo = target.dataset.subgrupo;
-      if (grupo && subgrupo) {
-        filtrarProductos(grupo, subgrupo);
-      }
-    }
-    if (target.id === 'adminBtnNuevoGrupo') {
-      e.preventDefault();
-      agregarNuevoGrupo();
-    }
-    if (target.id === 'btnNuevoProductoTabla') {
-      e.preventDefault();
-      agregarNuevoProducto();
-    }
-    if (target.id === 'guardarTodosTablaBtn') {
-      e.preventDefault();
-      guardarTodosProductos();
-    }
-  });
-
-  tableView.addEventListener('change', (e) => {
-    const target = e.target;
-    if (target.classList.contains('talle-toggle')) {
-      const filaColor = target.closest('.fila-color');
-      if (!filaColor) return;
-
-      const inputDinamico = filaColor.querySelector('.talles-input, .stock-input');
-      if (!inputDinamico) return;
-
-      const estaMarcado = target.checked;
-
-      if (estaMarcado) {
-        let valorActual = inputDinamico.value;
-        if (inputDinamico.type === 'number') {
-          const stock = parseInt(valorActual, 10) || 0;
-          valorActual = `unico:${stock}`;
-        }
-        inputDinamico.type = 'text';
-        inputDinamico.classList.remove('stock-input');
-        inputDinamico.classList.add('talles-input');
-        inputDinamico.placeholder = 'S:30, M:20';
-        inputDinamico.value = valorActual;
-      } else {
-        let valorActual = inputDinamico.value;
-        let stock = 0;
-        if (inputDinamico.type === 'text') {
-          const tallesObj = parsearTallesStock(valorActual);
-          if (tallesObj['unico']) {
-            stock = tallesObj['unico'];
-          } else {
-            stock = Object.values(tallesObj).reduce((a, b) => a + b, 0);
-          }
-        } else {
-          stock = parseInt(valorActual, 10) || 0;
-        }
-        inputDinamico.type = 'number';
-        inputDinamico.classList.remove('talles-input');
-        inputDinamico.classList.add('stock-input');
-        inputDinamico.placeholder = 'Stock';
-        inputDinamico.value = stock;
-      }
-    }
-  });
 }
 
 
