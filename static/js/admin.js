@@ -201,12 +201,25 @@ function salirAdmin() {
   window.modoAdmin = false;
   window.tokenAdmin = null;
   history.replaceState(null, "", window.location.pathname);
-  const loginToggleBtn = document.getElementById("loginToggleBtn");
-  if (loginToggleBtn) loginToggleBtn.style.display = "none";
-  const logoutWrapper = document.getElementById("logoutAdminWrapper");
-  if (logoutWrapper) logoutWrapper.style.display = "none";
-  const configurarMP = document.getElementById("configurarMP");
-  if (configurarMP) configurarMP.classList.add("d-none");
+
+  // Ocultar elementos de administración
+  const adminContainer = document.getElementById('adminFormsContainer');
+  if (adminContainer) adminContainer.classList.add('d-none');
+
+  const formsList = document.getElementById('formsList');
+  if (formsList) formsList.style.display = 'block'; // restaurar lista original (si existe)
+
+  const logoutWrapper = document.getElementById('logoutAdminWrapper');
+  if (logoutWrapper) logoutWrapper.style.display = 'none';
+
+  const configurarMP = document.getElementById('configurarMP');
+  if (configurarMP) configurarMP.classList.add('d-none');
+
+  // Mostrar nuevamente el botón de login flotante
+  const loginToggleBtn = document.getElementById('loginToggleBtn');
+  if (loginToggleBtn) loginToggleBtn.style.display = 'block';
+
+  // Restaurar la vista normal de productos
   if (window.currentGrupo) {
     const btnGrupo = Array.from(document.querySelectorAll('.btn-grupo'))
       .find(b => b.textContent.trim().toLowerCase() === window.currentGrupo.toLowerCase());
@@ -233,6 +246,7 @@ function salirAdmin() {
     const primerGrupo = document.querySelector('.btn-grupo');
     if (primerGrupo) mostrarGrupo(primerGrupo.textContent.trim(), { target: primerGrupo });
   }
+
   console.log("✅ Modo admin desactivado, vista restaurada.");
 }
 
