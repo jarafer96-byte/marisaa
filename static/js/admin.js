@@ -919,6 +919,18 @@ if (window.modoAdmin) {
     }, 50);
   });
 
+  // ✅ Mostrar botón de logout si hay token
+  const logoutWrapper = document.getElementById('logoutAdminWrapper');
+  if (logoutWrapper) logoutWrapper.style.display = 'block';
+
+  // ✅ Mostrar botón de configurar Mercado Pago
+  const configurarMP = document.getElementById('configurarMP');
+  if (configurarMP) configurarMP.classList.remove('d-none');
+
+  // ✅ Ocultar botón de login flotante (ya no es necesario)
+  const loginToggleBtn = document.getElementById('loginToggleBtn');
+  if (loginToggleBtn) loginToggleBtn.style.display = 'none';
+
   // --- LISTENER DELEGADO ÚNICO ---
   const adminContainer = document.getElementById('adminFormsContainer');
   if (adminContainer) {
@@ -961,7 +973,7 @@ if (window.modoAdmin) {
         const fila = target.closest('tr');
         if (fila && idBase) {
           const producto = obtenerProductoDesdeFila(fila, idBase);
-          await guardarProducto(producto, { dataset: { idBase } }, true); // skipReload = true
+          await guardarProducto(producto, { dataset: { idBase } }, true);
         }
         return;
       }
@@ -1054,18 +1066,10 @@ if (window.modoAdmin) {
         if (grupo && subgrupo) filtrarProductos(grupo, subgrupo);
         return;
       }
-
-      // Cambio en el toggle talle (dentro de fila color)
-      if (target.classList.contains('talle-toggle')) {
-        // Este cambio se maneja con event listener aparte, pero también podría ir aquí.
-        // Lo dejamos en el change original, pero como es un cambio no un clic, lo mantenemos.
-        // No hacemos nada aquí.
-        return;
-      }
     });
   }
 
-  // Manejar cambios en los toggles de talle (separado porque es evento change, no click)
+  // Manejar cambios en los toggles de talle (evento change)
   adminContainer.addEventListener('change', (e) => {
     const target = e.target;
     if (target.classList.contains('talle-toggle')) {
