@@ -46,7 +46,7 @@
   
 <style>
 html, body { position: relative; background-color: #64636d; min-height: 100vh; min-height: 100dvh; overflow-x: hidden; }
-body.container.modo-oscuro { position: relative !important; background-color: transparent; border-radius: 40px !important; padding: 40px !important; margin: 0 auto !important; width: 100% !important; max-width: 1300px !important; box-sizing: border-box !important; }
+body.container.modo-oscuro { position: relative !important; border-radius: 40px !important; padding: 40px !important; margin: 0 auto !important; width: 100% !important; max-width: 1300px !important; box-sizing: border-box !important; }
 body.container.modo-oscuro::before {
   content: '';
   position: absolute;
@@ -58,7 +58,6 @@ body.container.modo-oscuro::before {
     linear-gradient(135deg, rgba(30, 41, 59, 0.4) 0%, rgba(15, 23, 42, 0.6) 100%),
     radial-gradient(circle at 15% 15%, rgba(139, 92, 246, 0.2) 0%, transparent 30%),
     radial-gradient(circle at 85% 85%, rgba(14, 165, 233, 0.2) 0%, transparent 30%);
-  
   border-radius: 40px;
   z-index: -1;
 }
@@ -156,13 +155,6 @@ h1, h2, h3, .btn, .card { font-family: 'Raleway', sans-serif; }
   border-radius: 0.25rem;
   appearance: none;
 }  
-
-body {
-  background-image: url('/static/img/ciudad.webp');
-  background-size: cover;
-  background-position: center;
-  background-attachment: fixed; /* Clave: la imagen no se redimensiona al cambiar el viewport */
-}  
 </style>
 <link rel="preload" href="static/css/estilos.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
 <noscript><link rel="stylesheet" href="static/css/estilos.min.css"></noscript>
@@ -195,7 +187,7 @@ body {
 </script>   
 </head>
 <body class="container modo-oscuro">
-  
+  <div class="fondo"></div>
   <div class="main-content">
 <main>  
 <div class="text-center logo-wrapper">
