@@ -825,21 +825,21 @@ async function agregarNuevoProducto() {
     alert('Selecciona un grupo específico (no "Todos") para crear un producto en ese grupo, o crea un grupo primero.');
     return;
   }
+  const subgrupoActual = window.currentSub || '';  // Obtener el subgrupo activo o vacío
   const tempId = 'nuevo_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
   const nuevoProducto = {
     id_base: tempId,
     nombre: '',
     precio: 0,
     grupo: grupoActual,
-    subgrupo: subgrupoActual,  
+    subgrupo: subgrupoActual,   // Asignar el subgrupo actual
     descripcion: '',
     imagen_url: '',
     fotos_adicionales: [],
   };
   window.todosLosProductos.push(nuevoProducto);
-  const grupoFiltro = grupoActual;
-  const subgrupoFiltro = window.currentSub;
-  filtrarProductos(grupoActual, subgrupoActual);  
+  // Refrescar la tabla con el mismo grupo y subgrupo actual
+  filtrarProductos(grupoActual, subgrupoActual);
 }
 
 
