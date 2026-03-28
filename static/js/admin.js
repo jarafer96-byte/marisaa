@@ -1,23 +1,9 @@
 window.todosLosProductos = window.todosLosProductos || [];
 
-const storedToken = localStorage.getItem('tokenAdmin');
-const storedEmail = localStorage.getItem('adminEmail');
-if (storedToken && storedEmail) {
-  window.tokenAdmin = storedToken;
-  window.cliente = { email: storedEmail };
-  window.modoAdmin = true;
-}
-
 async function guardarProducto(producto, formDiv, skipReload = false) {
   const email = window.cliente?.email;
   if (!email) {
     alert("❌ No hay email de admin, no se puede guardar");
-    return false;
-  }
-
-  const token = window.tokenAdmin;
-  if (!token) {
-    alert("❌ No hay sesión activa. Inicia sesión nuevamente.");
     return false;
   }
 
@@ -41,24 +27,9 @@ async function guardarProducto(producto, formDiv, skipReload = false) {
   try {
     const resp = await fetch("https://mpagina.onrender.com/guardar-producto", {
       method: "POST",
-      headers: { 
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${token}`
-      },
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload)
     });
-
-    if (resp.status === 401) {
-      alert("❌ Sesión expirada. Por favor, inicia sesión nuevamente.");
-      localStorage.removeItem('tokenAdmin');
-      localStorage.removeItem('adminEmail');
-      window.tokenAdmin = null;
-      window.cliente = null;
-      window.modoAdmin = false;
-      window.location.href = window.location.pathname;
-      return false;
-    }
-
     if (!resp.ok) {
       const text = await resp.text();
       throw new Error(`Error HTTP ${resp.status}: ${text.substring(0, 200)}`);
@@ -69,6 +40,7 @@ async function guardarProducto(producto, formDiv, skipReload = false) {
       if (typeof mostrarToast === 'function') {
         mostrarToast(`✅ ${producto.nombre} guardado`);
       }
+      // Solo recargar si no es un guardado en lote
       if (!skipReload) {
         await recargarProductos();
         renderTablaProductos();
@@ -106,34 +78,12 @@ async function eliminarProducto(id_base) {
     return;
   }
 
-  const token = window.tokenAdmin;
-  if (!token) {
-    alert("❌ No hay sesión activa. Inicia sesión nuevamente.");
-    window.location.href = window.location.pathname;
-    return;
-  }
-
   try {
     const resp = await fetch("https://mpagina.onrender.com/eliminar-producto", {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${token}`
-      },
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ id_base, email: window.cliente.email })
     });
-
-    if (resp.status === 401) {
-      alert("❌ Sesión expirada. Inicia sesión nuevamente.");
-      localStorage.removeItem('tokenAdmin');
-      localStorage.removeItem('adminEmail');
-      window.tokenAdmin = null;
-      window.cliente = null;
-      window.modoAdmin = false;
-      window.location.href = window.location.pathname;
-      return;
-    }
-
     const data = await resp.json();
     if (data.status === "ok") {
       await recargarProductos();
@@ -186,33 +136,16 @@ async function optimizarImagen(file) {
 
 
 async function subirImagen(blob) {
-  const token = window.tokenAdmin;
-  if (!token) {
-    throw new Error("❌ No hay sesión activa. Inicia sesión nuevamente.");
-  }
-
   const formData = new FormData();
   formData.append('file', blob, 'imagen.webp');
   formData.append('email', window.cliente.email);
-  formData.append('token', token);   
   const resp = await fetch('https://mpagina.onrender.com/subir-foto', {
     method: 'POST',
     body: formData
   });
-
-  if (resp.status === 401) {
-    localStorage.removeItem('tokenAdmin');
-    localStorage.removeItem('adminEmail');
-    window.tokenAdmin = null;
-    window.cliente = null;
-    window.modoAdmin = false;
-    window.location.href = window.location.pathname;
-    throw new Error("Sesión expirada");
-  }
-
   const data = await resp.json();
   if (data.ok && data.url) return data.url;
-  throw new Error('Error al subir imagen: ' + (data.error || 'Desconocido'));
+  throw new Error('Error al subir imagen');
 }
 
 
@@ -264,10 +197,7 @@ function abrirConfigMercadoPago() {
 
 function salirAdmin() {
   console.log("🚪 Saliendo de modo admin, limpiando token...");
-  localStorage.removeItem('tokenAdmin');
-  localStorage.removeItem('adminEmail');
   window.modoAdmin = false;
-  window.cliente = null;
   window.tokenAdmin = null;
   history.replaceState(null, "", window.location.pathname);
 
@@ -340,12 +270,12 @@ function loginAdmin(event) {
     .then(res => res.json())
     .then(data => {
       if (data.status === "ok" && data.token) {
-        localStorage.setItem('tokenAdmin', data.token);
-        localStorage.setItem('adminEmail', data.email);
-        window.tokenAdmin = data.token;
-        window.cliente = { email: data.email };
-        window.modoAdmin = true;
-        window.location.href = window.location.pathname + '?admin=1';
+        alert("✅ Acceso concedido");
+        const loginToggleBtn = document.getElementById("loginToggleBtn");
+        if (loginToggleBtn) loginToggleBtn.style.display = "none";
+        const loginForm = document.getElementById("loginFloatingForm");
+        if (loginForm) loginForm.style.display = "none";
+        window.location.search = `?token=${data.token}`;
       } else {
         alert("❌ " + data.message);
       }
