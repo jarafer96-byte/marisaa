@@ -820,34 +820,33 @@ function getCurrentSelectedGroup() {
 
 
 async function agregarNuevoProducto() {
-  // Obtener el grupo del botón activo en la barra de grupos
   const grupoBtnActivo = document.querySelector('.grupo-btn.active');
   const grupoActual = grupoBtnActivo ? grupoBtnActivo.dataset.grupo : null;
-  
+
   if (!grupoActual) {
     alert('Selecciona un grupo específico (no "Todos") para crear un producto en ese grupo, o crea un grupo primero.');
     return;
   }
 
-  // Obtener el subgrupo del botón activo en la barra de subgrupos (si existe)
-  const subgrupoBtnActivo = document.querySelector('.subgrupo-btn.active');
+  // Buscar subgrupo activo DENTRO de la barra de subgrupos del admin
+  const subgrupoBtnActivo = document.querySelector('#adminSubgruposBar .subgrupo-btn.active');
   const subgrupoActual = subgrupoBtnActivo ? subgrupoBtnActivo.dataset.subgrupo : '';
-  
+
+  console.log(`[Nuevo producto] Grupo: ${grupoActual}, Subgrupo activo: ${subgrupoActual}`);
+
   const tempId = 'nuevo_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
   const nuevoProducto = {
     id_base: tempId,
     nombre: '',
     precio: 0,
     grupo: grupoActual,
-    subgrupo: subgrupoActual,   // 👈 Usa el subgrupo activo o vacío
+    subgrupo: subgrupoActual,
     descripcion: '',
     imagen_url: '',
     fotos_adicionales: [],
   };
-  
+
   window.todosLosProductos.push(nuevoProducto);
-  
-  // Refrescar la tabla con el mismo grupo y subgrupo actual
   filtrarProductos(grupoActual, subgrupoActual);
 }
 
