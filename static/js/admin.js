@@ -831,7 +831,7 @@ async function agregarNuevoProducto() {
     nombre: '',
     precio: 0,
     grupo: grupoActual,
-    subgrupo: '',
+    subgrupo: subgrupoActual,  
     descripcion: '',
     imagen_url: '',
     fotos_adicionales: [],
@@ -839,7 +839,7 @@ async function agregarNuevoProducto() {
   window.todosLosProductos.push(nuevoProducto);
   const grupoFiltro = grupoActual;
   const subgrupoFiltro = window.currentSub;
-  filtrarProductos(grupoFiltro, subgrupoFiltro);
+  filtrarProductos(grupoActual, subgrupoActual);  
 }
 
 
