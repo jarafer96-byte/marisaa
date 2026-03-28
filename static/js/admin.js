@@ -186,16 +186,33 @@ async function optimizarImagen(file) {
 
 
 async function subirImagen(blob) {
+  const token = window.tokenAdmin;
+  if (!token) {
+    throw new Error("❌ No hay sesión activa. Inicia sesión nuevamente.");
+  }
+
   const formData = new FormData();
   formData.append('file', blob, 'imagen.webp');
   formData.append('email', window.cliente.email);
+  formData.append('token', token);   
   const resp = await fetch('https://mpagina.onrender.com/subir-foto', {
     method: 'POST',
     body: formData
   });
+
+  if (resp.status === 401) {
+    localStorage.removeItem('tokenAdmin');
+    localStorage.removeItem('adminEmail');
+    window.tokenAdmin = null;
+    window.cliente = null;
+    window.modoAdmin = false;
+    window.location.href = window.location.pathname;
+    throw new Error("Sesión expirada");
+  }
+
   const data = await resp.json();
   if (data.ok && data.url) return data.url;
-  throw new Error('Error al subir imagen');
+  throw new Error('Error al subir imagen: ' + (data.error || 'Desconocido'));
 }
 
 
