@@ -701,6 +701,7 @@ function filtrarProductos(grupo, subgrupo = null) {
     }
   });
 
+  window.currentAdminSubgrupo = subgrupo;
   if (grupo && grupo !== 'todos') {
     const subgrupos = [...new Set(
       window.todosLosProductos.filter(p => p.grupo === grupo)
@@ -820,6 +821,7 @@ function getCurrentSelectedGroup() {
 
 
 async function agregarNuevoProducto() {
+  // Obtener grupo activo
   const grupoBtnActivo = document.querySelector('.grupo-btn.active');
   const grupoActual = grupoBtnActivo ? grupoBtnActivo.dataset.grupo : null;
 
@@ -828,11 +830,22 @@ async function agregarNuevoProducto() {
     return;
   }
 
-  // Buscar subgrupo activo DENTRO de la barra de subgrupos del admin
+  // Intentar obtener subgrupo del botón activo en la barra de subgrupos
   const subgrupoBtnActivo = document.querySelector('#adminSubgruposBar .subgrupo-btn.active');
-  const subgrupoActual = subgrupoBtnActivo ? subgrupoBtnActivo.dataset.subgrupo : '';
+  let subgrupoActual = '';
 
-  console.log(`[Nuevo producto] Grupo: ${grupoActual}, Subgrupo activo: ${subgrupoActual}`);
+  if (subgrupoBtnActivo) {
+    subgrupoActual = subgrupoBtnActivo.dataset.subgrupo;
+    console.log(`[Nuevo producto] Subgrupo desde botón activo: ${subgrupoActual}`);
+  } else if (window.currentAdminSubgrupo) {
+    // Fallback: usar el último subgrupo guardado
+    subgrupoActual = window.currentAdminSubgrupo;
+    console.log(`[Nuevo producto] Subgrupo desde respaldo: ${subgrupoActual}`);
+  } else {
+    console.log('[Nuevo producto] No hay subgrupo activo (vista general del grupo)');
+  }
+
+  console.log(`[Nuevo producto] Creando en grupo=${grupoActual}, subgrupo=${subgrupoActual}`);
 
   const tempId = 'nuevo_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
   const nuevoProducto = {
@@ -847,6 +860,7 @@ async function agregarNuevoProducto() {
   };
 
   window.todosLosProductos.push(nuevoProducto);
+  // Refrescar la tabla con el mismo grupo y subgrupo
   filtrarProductos(grupoActual, subgrupoActual);
 }
 
