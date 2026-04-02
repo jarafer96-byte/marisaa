@@ -14,7 +14,8 @@ export async function onRequest(context) {
     '/conectar_mp',
     '/actualizar-stock-talle',
     '/guardar-talles-stock',
-    '/callback_mp'
+    '/callback_mp',
+    '/purge-cache' 
   ];
 
   const shouldGoToBackend = backendRoutes.some(route => 
