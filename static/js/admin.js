@@ -57,26 +57,6 @@ async function guardarProducto(producto, formDiv, skipReload = false) {
 }
 
 
-function limpiarCache() {
-  const dominioActual = window.location.hostname; // ej: "fer.pages.dev"
-  fetch('/purge-cache', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ 
-      email: window.cliente.email,
-      dominio: dominioActual
-    })
-  })
-  .then(res => res.json())
-  .then(data => {
-    if (data.status === 'ok') alert('✅ Caché limpiada');
-    else alert('❌ Error: ' + data.message);
-  })
-  .catch(err => alert('❌ Error de red: ' + err.message));
-}
-
-
-
 async function eliminarProducto(id_base) {
   console.log("[ELIMINAR_PRODUCTO] 🔔 Click en botón eliminar → id_base:", id_base);
 
