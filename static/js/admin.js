@@ -36,11 +36,9 @@ async function guardarProducto(producto, formDiv, skipReload = false) {
     }
     const data = await resp.json();
     if (data.status === "ok") {
-      console.log("✅ Producto guardado:", data);
       if (typeof mostrarToast === 'function') {
         mostrarToast(`✅ ${producto.nombre} guardado`);
       }
-      // Solo recargar si no es un guardado en lote
       if (!skipReload) {
         await recargarProductos();
         renderTablaProductos();
@@ -50,16 +48,93 @@ async function guardarProducto(producto, formDiv, skipReload = false) {
       throw new Error(data.error || data.message || "Error al guardar producto");
     }
   } catch (err) {
-    console.error("❌ Error guardando producto:", err);
     alert("❌ Error: " + err.message);
     return false;
   }
 }
 
+function abrirConfigCorreoArgentino() {
+  const modal = document.getElementById('modalConfigCA');
+  if (modal) {
+    modal.style.display = 'flex';
+  }
+}
+
+function cerrarModalConfigCA() {
+  const modal = document.getElementById('modalConfigCA');
+  if (modal) {
+    modal.style.display = 'none';
+  }
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  const form = document.getElementById('formConfigCA');
+  if (form) {
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      
+      const email = window.cliente?.email;
+      if (!email) {
+        alert("No se detectó el email del vendedor. Inicia sesión nuevamente.");
+        return;
+      }
+
+      const agreement = document.getElementById('ca_agreement').value.trim();
+      const api_key = document.getElementById('ca_api_key').value.trim();
+      const micorreo_user = document.getElementById('ca_micorreo_user').value.trim();
+      const micorreo_password = document.getElementById('ca_micorreo_password').value.trim();
+      const test_mode = document.getElementById('ca_test_mode').checked;
+      
+      const nombre = document.getElementById('ca_nombre').value.trim();
+      const calle = document.getElementById('ca_calle').value.trim();
+      const altura = document.getElementById('ca_altura').value.trim();
+      const localidad = document.getElementById('ca_localidad').value.trim();
+      const provincia_codigo = document.getElementById('ca_provincia_codigo').value.trim();
+      const codigo_postal = document.getElementById('ca_codigo_postal').value.trim();
+      
+      if (!agreement || !api_key || !micorreo_user || !micorreo_password ||
+          !nombre || !calle || !altura || !localidad || !provincia_codigo || !codigo_postal) {
+        alert("Por favor completa todos los campos.");
+        return;
+      }
+
+      const submitBtn = form.querySelector('button[type="submit"]');
+      const originalText = submitBtn.innerText;
+      submitBtn.innerText = "Guardando...";
+      submitBtn.disabled = true;
+      
+      try {
+        const credRes = await fetch("/ca/guardar-credenciales", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ agreement, api_key, micorreo_user, micorreo_password, test_mode })
+        });
+        const credData = await credRes.json();
+        if (credData.status !== "ok") throw new Error(credData.error || "Error guardando credenciales");
+
+        const remRes = await fetch("/ca/guardar-remitente", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ nombre, calle, altura, localidad, provincia_codigo, codigo_postal })
+        });
+        const remData = await remRes.json();
+        if (remData.status !== "ok") throw new Error(remData.error || "Error guardando remitente");
+        
+        alert("✅ Configuración de Correo Argentino guardada correctamente.");
+        cerrarModalConfigCA();
+
+        form.reset();
+      } catch (err) {
+        alert("❌ Error: " + err.message);
+      } finally {
+        submitBtn.innerText = originalText;
+        submitBtn.disabled = false;
+      }
+    });
+  }
+});
 
 async function eliminarProducto(id_base) {
-  console.log("[ELIMINAR_PRODUCTO] 🔔 Click en botón eliminar → id_base:", id_base);
-
   if (id_base && id_base.startsWith('nuevo_')) {
     const index = window.todosLosProductos.findIndex(p => p.id_base === id_base);
     if (index !== -1) {
@@ -99,7 +174,6 @@ async function eliminarProducto(id_base) {
 
 
 async function optimizarImagen(file) {
-  console.log(`[optimizarImagen] Iniciando optimización: ${file.name} (${file.size} bytes)`);
   const imgUrl = URL.createObjectURL(file);
   try {
     const img = await new Promise((resolve, reject) => {
@@ -190,61 +264,16 @@ function duplicarProductoDesdeCard(id_base) {
 
 function abrirConfigMercadoPago() {
   const urlRetorno = window.location.href;
-  const configUrl = `/conectar_mp?email=${encodeURIComponent(window.cliente.email)}&url_retorno=${encodeURIComponent(urlRetorno)}&token=${encodeURIComponent(window.tokenAdmin)}`;
+  const configUrl = `/conectar_mp?email=${encodeURIComponent(window.cliente.email)}&url_retorno=${encodeURIComponent(urlRetorno)}`;
   window.location.href = configUrl;
 }
 
 
 function salirAdmin() {
-  console.log("🚪 Saliendo de modo admin, limpiando token...");
-  window.modoAdmin = false;
-  window.tokenAdmin = null;
-  history.replaceState(null, "", window.location.pathname);
-
-  const adminContainer = document.getElementById('adminFormsContainer');
-  if (adminContainer) adminContainer.classList.add('d-none');
-
-  const formsList = document.getElementById('formsList');
-  if (formsList) formsList.style.display = 'block'; 
-
-  const logoutWrapper = document.getElementById('logoutAdminWrapper');
-  if (logoutWrapper) logoutWrapper.style.display = 'none';
-
-  const configurarMP = document.getElementById('configurarMP');
-  if (configurarMP) configurarMP.classList.add('d-none');
-
-  const loginToggleBtn = document.getElementById('loginToggleBtn');
-  if (loginToggleBtn) loginToggleBtn.style.display = 'block';
-
-  if (window.currentGrupo) {
-    const btnGrupo = Array.from(document.querySelectorAll('.btn-grupo'))
-      .find(b => b.textContent.trim().toLowerCase() === window.currentGrupo.toLowerCase());
-    if (btnGrupo) {
-      mostrarGrupo(window.currentGrupo, { target: btnGrupo });
-      if (window.currentSub) {
-        setTimeout(() => {
-          const btnSub = Array.from(document.querySelectorAll('.btn-subgrupo'))
-            .find(b => b.textContent.trim().toLowerCase() === window.currentSub.toLowerCase());
-          if (btnSub) mostrarSubgrupo(window.currentSub, { target: btnSub });
-          else {
-            const subgrupos = [...new Set(window.todosLosProductos
-              .filter(p => p.grupo?.toLowerCase() === window.currentGrupo.toLowerCase())
-              .map(p => p.subgrupo).filter(Boolean))];
-            if (subgrupos.length > 0) filtrarSubcategoria(window.currentGrupo, subgrupos[0]);
-          }
-        }, 100);
-      }
-    } else {
-      const primerGrupo = document.querySelector('.btn-grupo');
-      if (primerGrupo) mostrarGrupo(primerGrupo.textContent.trim(), { target: primerGrupo });
-    }
-  } else {
-    const primerGrupo = document.querySelector('.btn-grupo');
-    if (primerGrupo) mostrarGrupo(primerGrupo.textContent.trim(), { target: primerGrupo });
-  }
-
-  console.log("✅ Modo admin desactivado, vista restaurada.");
+  sessionStorage.removeItem('adminToken');
+  window.location.href = window.location.pathname;
 }
+
 
 function loginAdmin(event) {
   event.preventDefault();
@@ -270,14 +299,11 @@ function loginAdmin(event) {
     .then(res => res.json())
     .then(data => {
       if (data.status === "ok" && data.token) {
+        sessionStorage.setItem('adminToken', data.token);
         alert("✅ Acceso concedido");
-        const loginToggleBtn = document.getElementById("loginToggleBtn");
-        if (loginToggleBtn) loginToggleBtn.style.display = "none";
-        const loginForm = document.getElementById("loginFloatingForm");
-        if (loginForm) loginForm.style.display = "none";
-        window.location.search = `?token=${data.token}`;
+        window.location.href = window.location.pathname; 
       } else {
-        alert("❌ " + data.message);
+        alert("❌ " + (data.message || "Error desconocido"));
       }
     })
     .catch(() => {
@@ -401,16 +427,56 @@ function parsearTallesStock(cadena) {
 function agregarFilaColor(btn) {
   const contenedor = btn.closest('.colores-stock-container');
   const nuevaFila = document.createElement('div');
-  nuevaFila.className = 'fila-color mb-1 d-flex align-items-center gap-1';
+  nuevaFila.className = 'fila-color d-flex align-items-center mb-1';
+  nuevaFila.style.gap = '5px';
   nuevaFila.innerHTML = `
-    <input type="text" class="form-control form-control-sm color-input" placeholder="Color" style="width: 100px;" value="">
-    <input type="text" class="form-control form-control-sm talles-input" placeholder="S:1, M:2, L:3" style="width: 180px;" value="">
-    <button class="btn btn-sm btn-outline-danger eliminar-color" title="Eliminar">✖</button>
+    <input type="text" class="form-control form-control-sm color-input" placeholder="Color" style="width: 100px;">
+    <input type="checkbox" class="talle-toggle" style="margin: 0 5px;">
+    <span class="small">Talles</span>
+    <input type="number" class="form-control form-control-sm stock-input" placeholder="Stock" style="flex: 1;">
+    <button class="btn btn-sm btn-outline-danger eliminar-color" title="Eliminar color">✖</button>
   `;
+  
+  // Insertar antes del botón "Agregar color"
   contenedor.insertBefore(nuevaFila, btn);
-  nuevaFila.querySelector('.eliminar-color').addEventListener('click', (e) => {
+  
+  // Asignar evento al botón eliminar
+  const eliminarBtn = nuevaFila.querySelector('.eliminar-color');
+  eliminarBtn.addEventListener('click', (e) => {
     e.stopPropagation();
     nuevaFila.remove();
+  });
+  
+  // Asignar evento al checkbox para cambiar el tipo de input
+  const toggle = nuevaFila.querySelector('.talle-toggle');
+  const input = nuevaFila.querySelector('.stock-input'); // inicialmente es number
+  toggle.addEventListener('change', function(e) {
+    const estaMarcado = this.checked;
+    if (estaMarcado) {
+      // Cambiar a modo talles (texto)
+      const valorActual = input.value;
+      input.type = 'text';
+      input.classList.remove('stock-input');
+      input.classList.add('talles-input');
+      input.placeholder = 'S:30, M:20';
+      input.value = valorActual; // conservar el valor si era un número
+    } else {
+      // Cambiar a modo stock único (number)
+      let valorActual = input.value;
+      let stock = 0;
+      if (input.type === 'text') {
+        // Si estaba en modo talles, intentar extraer stock total o dejar 0
+        const tallesObj = parsearTallesStock(valorActual);
+        stock = Object.values(tallesObj).reduce((a, b) => a + b, 0);
+      } else {
+        stock = parseInt(valorActual, 10) || 0;
+      }
+      input.type = 'number';
+      input.classList.remove('talles-input');
+      input.classList.add('stock-input');
+      input.placeholder = 'Stock';
+      input.value = stock;
+    }
   });
 }
 
@@ -493,7 +559,7 @@ function renderFilasTabla(productos) {
   return productos.map(p => {
     const idBase = p.id_base || '';
     const nombre = p.nombre || '';
-    const precio = p.precio || 0;
+    const precio = p.precio || 0; 
     const descripcion = p.descripcion || '';
 
     const imagenMiniatura = getVersionUrl(p.imagen_url || '/static/img/fallback.webp', '58');
@@ -592,20 +658,19 @@ function renderFilasTabla(productos) {
          </td>
          <td><input type="text" class="editable-input nombre-input form-control form-control-sm" value="${nombre.replace(/"/g, '&quot;')}" data-id="${idBase}" data-campo="nombre" style="border-color: white;"></td>
          <td><input type="number" class="editable-input precio-input form-control form-control-sm" value="${precio}" data-id="${idBase}" data-campo="precio" step="0.01" min="0" style="width:80px; border-color: white;"></td>
-         <td>${coloresCellHTML}</td>
-         <td>${descripcionHTML}</td>
-         <td>
-          <div class="btn-group btn-group-sm">
-            <button class="btn btn-warning btn-sm guardar-producto" data-id="${idBase}" title="Guardar">💾</button>
-            <button class="btn btn-info btn-sm duplicar-producto" data-id="${idBase}" style="background-color:azure;" title="Duplicar">📋</button>
-            <button class="btn btn-danger btn-sm eliminar-producto" data-id="${idBase}" title="Eliminar">🗑️</button>
-          </div>
-         </td>
-       </tr>
+          <td>${coloresCellHTML}</td>
+          <td>${descripcionHTML}</td>
+          <td>
+            <div class="btn-group btn-group-sm">
+              <button class="btn btn-warning btn-sm guardar-producto" data-id="${idBase}" title="Guardar">💾</button>
+              <button class="btn btn-info btn-sm duplicar-producto" data-id="${idBase}" style="background-color:azure;" title="Duplicar">📋</button>
+              <button class="btn btn-danger btn-sm eliminar-producto" data-id="${idBase}" title="Eliminar">🗑️</button>
+            </div>
+          </td>
+        </tr>
     `;
   }).join('');
 }
-
 
 function mostrarSubgruposHorizontal(grupo) {
   const productos = window.todosLosProductos || [];
@@ -707,7 +772,6 @@ function filtrarProductos(grupo, subgrupo = null) {
   subgrupoBtns.forEach(btn => {
     if (btn.dataset.grupo === grupo && btn.dataset.subgrupo === subgrupo) {
       btn.classList.add('active');
-      console.log(`[FILTRAR] Activando subgrupo: ${btn.dataset.subgrupo}`);
     } else {
       btn.classList.remove('active');
     }
@@ -800,11 +864,10 @@ async function recargarProductos() {
   try {
     const email = window.cliente?.email;
     if (!email) return;
-    const resp = await fetch(`/api/productos?usuario=${encodeURIComponent(email)}`);
+    const resp = await fetch(`/api/productos`);
     const data = await resp.json();
     window.todosLosProductos = Array.isArray(data) ? data : [];
   } catch (err) {
-    console.error('Error recargando productos:', err);
   }
 }
 
@@ -832,15 +895,10 @@ async function agregarNuevoProducto() {
 
   if (subgrupoBtnActivo) {
     subgrupoActual = subgrupoBtnActivo.dataset.subgrupo;
-    console.log(`[Nuevo producto] Subgrupo desde botón activo: ${subgrupoActual}`);
   } else if (window.currentAdminSubgrupo) {
     subgrupoActual = window.currentAdminSubgrupo;
-    console.log(`[Nuevo producto] Subgrupo desde respaldo: ${subgrupoActual}`);
   } else {
-    console.log('[Nuevo producto] No hay subgrupo activo (vista general del grupo)');
   }
-
-  console.log(`[Nuevo producto] Creando en grupo=${grupoActual}, subgrupo=${subgrupoActual}`);
 
   const tempId = 'nuevo_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
   const nuevoProducto = {
@@ -879,7 +937,6 @@ async function guardarTodosProductos() {
       const resultado = await guardarProducto(producto, formDiv, true); 
       if (resultado) guardados++;
     } catch (error) {
-      console.error('Error guardando producto:', producto.nombre, error);
       errores.push(producto.nombre);
     }
   }
@@ -933,6 +990,9 @@ if (window.modoAdmin) {
 
   const formsList = document.getElementById('formsList');
   if (formsList) formsList.style.display = 'none';
+
+  const configurarCA = document.getElementById('configurarCA');
+  if (configurarCA) configurarCA.classList.remove('d-none');
 
   const tableView = document.getElementById('tableView');
   if (tableView) tableView.style.display = 'block';
