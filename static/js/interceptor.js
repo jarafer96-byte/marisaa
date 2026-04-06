@@ -11,8 +11,8 @@
   ];
 
   window.cliente = {
-    email: "ferj.9622@gmail.com",
-    whatsapp: "https://wa.me/5492975158178",
+    email: "trigomarisaadriana@gmail.com",
+    whatsapp: "https://wa.me/5492901602482",
     mercado_pago: ""
   };
   window.VENDOR_EMAIL = window.cliente.email;
