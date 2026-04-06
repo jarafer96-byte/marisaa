@@ -159,33 +159,9 @@ h1, h2, h3, .btn, .card { font-family: 'Raleway', sans-serif; }
 </style>
 <link rel="preload" href="static/css/estilos.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
 <noscript><link rel="stylesheet" href="static/css/estilos.min.css"></noscript>
-<script>
-    (function() {
-      window.cliente = {
-        email: "trigomarisaadriana@gmail.com",
-        whatsapp: "https://wa.me/5492901602482",
-        mercado_pago: ""
-      };
-      
-      window.URL_BACKEND = "https://mpagina.onrender.com";
-      window.carrito = [];
-      
-      const urlParams = new URLSearchParams(window.location.search);
-      window.modoAdmin = urlParams.has("token");
-      window.tokenAdmin = urlParams.get("token");
-      
-      const style = document.createElement('style');
-      style.textContent = '#productos { min-height: 500px; }';
-      document.head.appendChild(style);
+  
+<script src="static/js/interceptor.js" defer></script>
 
-      if (window.modoAdmin) {
-        const script = document.createElement('script');
-        script.src = 'static/js/admin.js';
-        script.defer = true;
-        document.head.appendChild(script);
-      }
-    })();
-</script>   
 </head>
 <body class="container modo-oscuro">
   <div class="fondo"></div>
