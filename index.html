@@ -23,9 +23,11 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="preconnect" href="https://cdn.jsdelivr.net">
   <link rel="preconnect" href="https://sdk.mercadopago.com">
-
+  <link rel="preconnect" href="https://pub-715efd970fe0495b9f12469499d2ce20.r2.dev" crossorigin>
+  
   <link rel="preload" as="image" href="/static/img/1234.webp" fetchpriority="high">
 
+  
   <link rel="stylesheet" 
         href="https://fonts.googleapis.com/css2?family=Roboto&family=Playfair+Display&family=Raleway&display=swap" 
         media="print" 
@@ -96,9 +98,7 @@ body.container.py-5.modo-oscuro {
 </style>
 <link rel="preload" href="static/css/estilos.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
 <noscript><link rel="stylesheet" href="static/css/estilos.min.css"></noscript>
-  
 <script src="static/js/interceptor.js" defer></script>
-
 </head>
 <body class="container modo-oscuro">
   <div class="fondo"></div>
@@ -111,7 +111,6 @@ body.container.py-5.modo-oscuro {
        class="img-fluid logo"
        fetchpriority="high"
        decoding="async"
-       importance="high">
 </div>
 
 
@@ -129,6 +128,44 @@ body.container.py-5.modo-oscuro {
   <button class="btn btn-sm btn-primary" onclick="abrirConfigMercadoPago()">
     ⚙️ Configurar Mercado Pago
   </button>
+</div>
+
+  <div id="configurarCA" class="d-none" style="margin-top:10px;">
+  <button class="btn btn-sm btn-primary" onclick="abrirConfigCorreoArgentino()">
+    📦 Configurar Correo Argentino
+  </button>
+</div>    
+
+<div id="modalConfigCA" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:10001; justify-content:center; align-items:center;">
+  <div style="background:#fff; color:#000; padding:20px; border-radius:10px; max-width:500px; width:90%; max-height:80%; overflow:auto;">
+    <h3>📦 Configurar Correo Argentino</h3>
+    <form id="formConfigCA">
+      <h4>Credenciales Paq.ar</h4>
+      <input type="text" id="ca_agreement" placeholder="Agreement (código de acuerdo)" class="form-control mb-2" required>
+      <input type="text" id="ca_api_key" placeholder="API Key" class="form-control mb-2" required>
+      
+      <h4>Credenciales MiCorreo</h4>
+      <input type="text" id="ca_micorreo_user" placeholder="Usuario MiCorreo (email)" class="form-control mb-2" required autocomplete="username">
+      <input type="password" id="ca_micorreo_password" placeholder="Contraseña MiCorreo" class="form-control mb-2" required autocomplete="new-password">
+      
+      <h4>Datos del remitente (quien envía)</h4>
+      <input type="text" id="ca_nombre" placeholder="Nombre completo" class="form-control mb-2" required>
+      <input type="text" id="ca_calle" placeholder="Calle" class="form-control mb-2" required>
+      <input type="text" id="ca_altura" placeholder="Altura" class="form-control mb-2" required>
+      <input type="text" id="ca_localidad" placeholder="Localidad" class="form-control mb-2" required>
+      <input type="text" id="ca_provincia_codigo" placeholder="Código provincia (ej: C, B, X)" class="form-control mb-2" required>
+      <input type="text" id="ca_codigo_postal" placeholder="Código postal" class="form-control mb-2" required>
+      
+      <div class="mb-2">
+        <label><input type="checkbox" id="ca_test_mode" checked> Modo de pruebas (TEST)</label>
+      </div>
+      
+      <div class="mt-3">
+        <button type="submit" class="btn btn-primary">Guardar configuración</button>
+        <button type="button" class="btn btn-secondary" onclick="cerrarModalConfigCA()">Cancelar</button>
+      </div>
+    </form>
+  </div>
 </div>
   
   <div class="text-center mt-5 mb-1">
@@ -161,6 +198,47 @@ body.container.py-5.modo-oscuro {
 
 <div id="productos" class="row productos-container"></div>
 
+  <template id="producto-template">
+  <div class="col-lg-4 col-md-6 col-sm-12 mb-4 fade-reorder card-producto">
+    <div class="card-giratoria">
+      <div class="card-contenedor">
+        <div class="card-front">
+          <div class="oferta-badge" style="display: none;"></div>
+          <button class="btn-girar">🔄</button>
+          <img class="lazy-image" alt="" width="300" height="180" style="width:100%; height:180px; object-fit:contain; border-radius:4px; cursor:pointer;">
+          <div class="card-body" style="padding-top: 1rem;">
+            <h5 class="card-title" style="font-size: 1.1rem !important;"></h5>
+            <p class="mb-2">
+              <span class="precio-anterior-tachado" style="display: none;"></span>
+              $<span class="precio-actual"></span>
+              <small class="ahorro" style="display: none;"></small>
+            </p>
+            <div class="selectores-container"></div>
+            <div class="mt-3 d-flex align-items-center gap-2">
+              <input type="number" min="1" value="1" class="form-control form-control-sm" style="width: 70px;">
+              <button type="button" class="btn btn-secondary btn-sm">Agregar al carrito</button>
+            </div>
+            <div class="fotos-adicionales mt-2"></div>
+            <div class="mt-2 whatsapp-container"></div>
+          </div>
+        </div>
+ 
+        <div class="card-back" style="display: flex; flex-direction: column; height: 100%;">
+          <button class="btn-reversa" style="position: absolute; top: 10px; right: 10px;">↩️</button>
+          <div class="descripcion-area" style="flex:1; padding:10px 80px 80px 80px; overflow-y:auto; text-align:center;">
+            <div class="descripcion-texto"></div>
+          </div>
+          <div class="card-back-footer" style="padding:15px; border-top:1px solid rgba(255,255,255,0.1); background:rgba(0,0,0,0.2);">
+            <div class="colores-info" style="display: none;"></div>
+            <div class="talles-info" style="display: none;"></div>
+            <button class="btn btn-secondary btn-sm w-100">🔄 Volver al frente</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</template>
+
 
   <button id="volverArriba" class="btn btn-volver-arriba" 
           style="position: fixed; bottom: 20px; left: 20px; display: none; z-index: 1000;">
@@ -172,8 +250,6 @@ body.container.py-5.modo-oscuro {
 <div id="adminFormsContainer" class="d-none" style=" background: linear-gradient(135deg, rgb(255 248 248 / 40%) 0%, rgb(0 0 0 / 60%) 100%), radial-gradient(circle at 15% 15%, rgb(0 0 0) 0%, #00000078 30%), radial-gradient(circle at 85% 85%, rgb(0 0 0 / 54%) 0%, #000000c4 30%);">
   <div id="tableView"></div>
 </div>
-<datalist id="grupos-sugeridos"></datalist>
-<datalist id="subgrupos-sugeridos"></datalist>
   
 <div id="paginacion" class="text-center mt-3"></div>
 
@@ -228,31 +304,72 @@ body.container.py-5.modo-oscuro {
 </div>
   
 <div id="carrito">
-  <div id="carritoCarousel" class="carousel slide" data-bs-ride="false">
-    <div class="carousel-inner">
-
-      <div class="carousel-item active">
-        <h3 style="font-size: 1.40rem !important;">🛒 Tu carrito</h3>
-        <ul id="listaCarrito"></ul>
-        <p><strong>Total:</strong> $<span id="totalCarrito">0</span></p>
-        
-        <form id="datosCliente" style="display: none;" autocomplete="on">
-          <h4>📝 Tus datos</h4>
-          <input type="text" name="nombre" placeholder="Nombre" class="form-control mb-2" required autocomplete="given-name">
-          <input type="text" name="apellido" placeholder="Apellido" class="form-control mb-2" required autocomplete="family-name">
-          <input type="email" name="email" placeholder="Email" class="form-control mb-2" required autocomplete="email">
-          <input type="tel" name="telefono" placeholder="Teléfono" class="form-control mb-2" autocomplete="tel">
-        </form>
-        
-        <div class="d-grid gap-2 mt-3">
-          <button class="btn btn-sm btn-danger" onclick="vaciarCarrito()">Vaciar carrito</button>
-          <button id="btnContinuar" class="btn btn-sm btn-success" onclick="mostrarFormulario()">
-            Continuar con la compra
-          </button>
-          <button id="btnPagarFinal" class="btn btn-sm btn-primary" style="display: none;">Pagar con Mercado Pago</button>
-        </div>
+  <div class="carrito-contenido">
+    <div id="pasoCarrito">
+      <h3 style="font-size: 1.40rem !important;">🛒 Tu carrito</h3>
+      <ul id="listaCarrito"></ul>
+      <p><strong>Total:</strong> $<span id="totalCarrito">0</span></p>
+      <div class="d-grid gap-2 mt-3">
+        <button class="btn btn-sm btn-danger" onclick="vaciarCarrito()">Vaciar carrito</button>
+        <button id="btnContinuar" class="btn btn-sm btn-success">Continuar con la compra</button>
       </div>
-      
+    </div>
+
+    <div id="pasoDireccion" style="display: none; margin-top: 20px;">
+      <h4 class="mt-3">📍 Dirección de envío</h4>
+      <input type="text" id="calle" placeholder="Calle" class="form-control mb-2" required>
+      <input type="text" id="numero" placeholder="Número" class="form-control mb-2" required>
+      <input type="text" id="localidad" placeholder="Localidad" class="form-control mb-2" required>
+      <select id="provincia_codigo" class="form-control mb-2" required>
+        <option value="">Seleccioná provincia</option>
+        <option value="A">Salta</option>
+        <option value="B">Provincia de Buenos Aires</option>
+        <option value="C">Ciudad Autónoma de Buenos Aires</option>
+        <option value="D">San Luis</option>
+        <option value="E">Entre Ríos</option>
+        <option value="F">La Rioja</option>
+        <option value="G">Santiago del Estero</option>
+        <option value="H">Chaco</option>
+        <option value="J">San Juan</option>
+        <option value="K">Catamarca</option>
+        <option value="L">La Pampa</option>
+        <option value="M">Mendoza</option>
+        <option value="N">Misiones</option>
+        <option value="P">Formosa</option>
+        <option value="Q">Neuquén</option>
+        <option value="R">Río Negro</option>
+        <option value="S">Santa Fe</option>
+        <option value="T">Tucumán</option>
+        <option value="U">Chubut</option>
+        <option value="V">Tierra del Fuego</option>
+        <option value="W">Corrientes</option>
+        <option value="X">Córdoba</option>
+        <option value="Y">Jujuy</option>
+        <option value="Z">Santa Cruz</option>
+      </select>
+      <input type="text" id="codigo_postal" placeholder="Código postal" class="form-control mb-2" required>
+
+      <div class="d-flex flex-wrap gap-2 mb-2">
+        <button type="button" class="btn btn-sm btn-info" id="btnCalcularEnvioPaso">Calcular envío</button>
+        <button type="button" class="btn btn-sm btn-secondary" id="btnSinEnvio">Omitir</button>
+        <button type="button" class="btn btn-sm btn-secondary" id="btnVolverCarrito">Volver atras</button>
+      </div>
+
+      <div id="costoEnvioMostrado" class="mt-2" style="font-size:0.9rem;"></div>
+      <button id="btnSiguienteDatos" class="btn btn-sm btn-primary mt-2" style="display: none;">Siguiente: tus datos</button>
+    </div>
+
+    <div id="pasoDatos" style="display: none; margin-top: 20px;">
+      <h4>📝 Tus datos</h4>
+      <input type="text" id="nombre" placeholder="Nombre" class="form-control mb-2" required>
+      <input type="text" id="apellido" placeholder="Apellido" class="form-control mb-2" required>
+      <input type="email" id="email_cliente" placeholder="Email" class="form-control mb-2" required>
+      <input type="tel" id="telefono" placeholder="Teléfono" class="form-control mb-2">
+
+      <div class="d-flex flex-wrap gap-2 mt-2">
+        <button id="btnPagarFinal" class="btn btn-sm btn-primary">Pagar con Mercado Pago</button>
+        <button id="btnVolverDireccion" class="btn btn-sm btn-secondary">Volver atras</button>
+      </div>
     </div>
   </div>
 </div>
