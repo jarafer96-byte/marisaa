@@ -59,6 +59,83 @@
 
 
 
+
+
+
+
+.oferta-badge {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    background-color: #ff4757;
+    color: white;
+    font-size: 0.8rem;
+    font-weight: bold;
+    padding: 4px 10px;
+    border-radius: 20px;
+    z-index: 5;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    animation: pulseOferta 1.5s infinite; /* si quieres la animación que ya definiste */
+}
+.precio-anterior-tachado {
+  text-decoration: line-through;
+  color: #999;
+  font-size: 0.9rem;
+  margin-right: 5px;
+}
+@keyframes pulseOferta {
+  0%, 100% { 
+    transform: scale(1); 
+    box-shadow: 0 2px 5px rgba(0,0,0,0.3); 
+  }
+  50% { 
+    transform: scale(1.05); 
+    box-shadow: 0 4px 10px rgba(255, 71, 87, 0.5); 
+  }
+}  
+.card, .card-giratoria { transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.3s cubic-bezier(0.4, 0, 0.2, 1); contain: content; padding: 12px; }
+.btn, .panel-grupos, .panel-subcategorias { contain: content; }
+.logo, .card img { image-rendering: -webkit-optimize-contrast; image-rendering: crisp-edges; }
+.modo-oscuro { color: white; isolation: isolate; }
+.panel-grupos, .panel-subcategorias { scrollbar-width: none; overflow-x: auto; white-space: nowrap; max-height: 50vh; overflow-y: auto; z-index: 999; background: rgba(0, 0, 0, 0.6); backdrop-filter: blur(6px); padding: 1px 0; text-align: center; box-shadow: 0 4px 8px rgba(255, 255, 255, 0.1); transition: all 0.3s ease; scroll-behavior: smooth; }
+.panel-grupos button, .panel-subcategorias button { font-family: 'Raleway', sans-serif; font-size: 13px; font-weight: 600; margin: 6px; padding: 1px 6px; border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 8px; background: rgba(255, 255, 255, 0.05); color: white; box-shadow: 0 0 6px rgba(255, 255, 255, 0.2); cursor: pointer; transition: all 0.3s ease; }
+.panel-grupos button:hover, .panel-subcategorias button:hover { background-color: #fff; color: #333; transform: scale(1.05); box-shadow: 0 0 8px none; }
+#carrito { position: fixed; bottom: 80px; right: 20px; padding: 15px; border-radius: 10px; width: 320px; z-index: 999; display: none; }
+.card-front, .card-back { position: absolute; backdrop-filter: blur(120px); width: 100%; height: 100%; backface-visibility: hidden; padding: 15px; background-color: rgba(0,0,0,0.6); border: 1px solid rgba(255,255,255,0.2); box-shadow: 0 8px 20px rgba(0,0,0,0.3); }  
+h1, h2, h3, .btn, .card { font-family: 'Raleway', sans-serif; }
+.text-center { text-align: center; }
+.mt-5 { margin-top: 3rem; }
+.mb-1 { margin-bottom: 0.25rem; }
+.mb-4 { margin-bottom: 1.5rem; }
+.d-inline-block { display: inline-block; }
+.w-auto { width: auto; }
+.d-none { display: none; }
+.btn-sm {
+  padding: 0.25rem 0.5rem;
+  font-size: 0.875rem;
+  border-radius: 0.2rem;
+}
+.btn-primary {
+  color: #fff;
+  background-color: #0d6efd;
+  border-color: #0d6efd;
+}
+.form-select {
+  display: block;
+  width: 100%;
+  font-weight: 400;
+  line-height: 1.5;
+  color: #212529;
+  background-color: #fff;
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23343a40' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='m2 5 6 6 6-6'/%3e%3c/svg%3e");
+  background-repeat: no-repeat;
+  background-position: right 0.75rem center;
+  background-size: 16px 12px;
+  border: 1px solid #ced4da;
+  border-radius: 0.25rem;
+  appearance: none;
+}  
+
 .subgrupo-btn.active {
   background-color: #007bff !important;
   color: white !important;
@@ -71,16 +148,46 @@
   width: 100%;
   height: 100%;
   min-height: 100vh;
-  
-  background-image: url('/static/img/ciudad.webp');
+  background-image: url('/static/img/mini_2_83838.webp');
   background-size: cover;
   background-position: center;
   z-index: -2;
 }
 .main-content {
   position: relative;
-  z-index: 1;         
+  z-index: 1;      
 }
+
+#modalConfigCA {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0,0,0,0.8);
+  z-index: 10001;
+  justify-content: center;
+  align-items: center;
+}
+#modalConfigCA > div {
+  background: #fff;
+  color: #000;
+  padding: 20px;
+  border-radius: 10px;
+  max-width: 500px;
+  width: 90%;
+  max-height: 80%;
+  overflow: auto;
+}
+@media (max-width: 600px) {
+  #modalConfigCA input, #modalConfigCA button {
+    font-size: 14px;
+  }
+}
+
+
+
 .panel-grupos:not(.oculta),
 .panel-subcategorias:not(.oculta) {
   transform: translateY(0);
@@ -166,17 +273,6 @@
   height: 100%;
   transition: transform 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275);
   transform-style: preserve-3d;
-}
-.card-front,
-.card-back {
-  position: absolute;
-  width: 100%;
-  height: 100%;
-  backface-visibility: hidden;
-  padding: 15px;
-  background-color: rgba(0,0,0,0.6);
-  border: 1px solid rgba(255,255,255,0.2);
-  box-shadow: 0 8px 20px rgba(0,0,0,0.3);
 }
 .card-front:hover,
 .card-back:hover {
@@ -370,40 +466,6 @@
 #paginacion .btn {
   margin: 0 4px;
 }
-
-
-
-.skeleton-card {
-  background: rgba(30, 30, 40, 0.6);
-  border-radius: 12px;
-  padding: 16px;
-  height: 420px;
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-.skeleton-image {
-  width: 100%;
-  height: 180px;
-  background: linear-gradient(90deg, #3a3a4a 25%, #4a4a5a 50%, #3a3a4a 75%);
-  background-size: 200% 100%;
-  animation: skeleton-loading 1.8s infinite ease-in-out;
-  border-radius: 8px;
-}
-.skeleton-line {
-  height: 24px;
-  background: #3a3a4a;
-  border-radius: 6px;
-  width: 100%;
-  animation: skeleton-loading 1.8s infinite ease-in-out;
-}
-.skeleton-line.short { width: 60%; }
-.skeleton-line.medium { width: 80%; }
-@keyframes skeleton-loading {
-  0% { background-position: 200% 0; }
-  100% { background-position: -200% 0; }
-}
-
 
 
 .admin-grupos-bar,
@@ -655,7 +717,7 @@
 .card:hover, .card-giratoria:hover {
   transform: translateY(-5px);
   will-change: transform, box-shadow;
-  box-shadow: 0 8px 20px rgba(0,0,0,0.3);
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
 }
 .text-center {
   text-align: center;
