@@ -56,18 +56,47 @@ async function guardarProducto(producto, formDiv, skipReload = false) {
 function abrirConfigCorreoArgentino() {
   const modal = document.getElementById('modalConfigCA');
   if (modal) {
-    modal.style.display = 'flex';
+    modal.classList.add('modal-visible');
   }
 }
 
 function cerrarModalConfigCA() {
   const modal = document.getElementById('modalConfigCA');
   if (modal) {
-    modal.style.display = 'none';
+    modal.classList.remove('modal-visible');
   }
 }
 
-document.addEventListener('DOMContentLoaded', () => {
+
+  const btnConfigMP = document.getElementById('btnConfigurarMP');
+  if (btnConfigMP) btnConfigMP.addEventListener('click', abrirConfigMercadoPago);
+
+  const btnConfigCA = document.getElementById('btnConfigurarCA');
+  if (btnConfigCA) btnConfigCA.addEventListener('click', abrirConfigCorreoArgentino);
+
+  const btnCerrarModalCA = document.getElementById('btnCerrarModalCA');
+  if (btnCerrarModalCA) btnCerrarModalCA.addEventListener('click', cerrarModalConfigCA);
+
+  const btnSalirAdmin = document.getElementById('btnSalirAdmin');
+  if (btnSalirAdmin) btnSalirAdmin.addEventListener('click', salirAdmin);
+
+  const btnProductos = document.getElementById('btnProductosNav');
+  if (btnProductos) btnProductos.addEventListener('click', mostrarTodos);
+  
+  const btnContacto = document.getElementById('btnContactoNav');
+  if (btnContacto) btnContacto.addEventListener('click', irAContacto);
+
+  const btnVaciarCarrito = document.getElementById('btnVaciarCarrito');
+  if (btnVaciarCarrito) btnVaciarCarrito.addEventListener('click', vaciarCarrito);
+
+  const modalClose = document.getElementById('modalClose');
+  if (modalClose) modalClose.addEventListener('click', closeModal);
+  
+  const modalOverlay = document.getElementById('imgModal');
+  if (modalOverlay) modalOverlay.addEventListener('click', (e) => {
+    if (e.target === modalOverlay) closeModal();
+  });
+
   const form = document.getElementById('formConfigCA');
   if (form) {
     form.addEventListener('submit', async (e) => {
@@ -132,7 +161,8 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     });
   }
-});
+
+
 
 async function eliminarProducto(id_base) {
   if (id_base && id_base.startsWith('nuevo_')) {
@@ -262,10 +292,23 @@ function duplicarProductoDesdeCard(id_base) {
 }
 
 
-function abrirConfigMercadoPago() {
+async function abrirConfigMercadoPago() {
   const urlRetorno = window.location.href;
-  const configUrl = `/conectar_mp?email=${encodeURIComponent(window.cliente.email)}&url_retorno=${encodeURIComponent(urlRetorno)}`;
-  window.location.href = configUrl;
+  try {
+    const response = await fetch('/api/conectar_mp', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ url_retorno: urlRetorno })
+    });
+    const data = await response.json();
+    if (data.auth_url) {
+      window.location.href = data.auth_url;
+    } else {
+      alert('Error: ' + (data.error || 'No se pudo obtener la URL de autorización'));
+    }
+  } catch (err) {
+    alert('Error de red: ' + err.message);
+  }
 }
 
 
@@ -316,6 +359,10 @@ function loginAdmin(event) {
       }
     });
 }
+const loginAdminForm = document.getElementById('loginAdminForm');
+if (loginAdminForm) {
+    loginAdminForm.addEventListener('submit', loginAdmin);
+}
 
 
 async function agregarFotoExtra(btn) {
@@ -338,12 +385,27 @@ async function agregarFotoExtra(btn) {
 
       const contenedor = btn.closest('.fotos-extra-container');
       const listaFotos = contenedor.querySelector('.fotos-extra-list');
+
+      // Crear contenedor de la foto extra
       const nuevaFoto = document.createElement('div');
       nuevaFoto.className = 'foto-extra-item d-flex align-items-center justify-content-between mb-1 p-1 border rounded';
-      nuevaFoto.innerHTML = `
-        <img src="${getVersionUrl(url, '58')}" style="width:40px; height:40px; object-fit:cover; border-radius:4px; cursor:pointer;" onclick="openModal('${url}')">
-        <button class="btn btn-sm btn-outline-danger eliminar-foto-extra" data-url="${url}" data-id="${idBase}" style="padding: 2px 8px;">✖</button>
-      `;
+
+      // Crear imagen
+      const img = document.createElement('img');
+      img.src = getVersionUrl(url, '58');
+      img.className = 'foto-extra-thumb';
+      img.alt = 'Foto adicional';
+      img.addEventListener('click', () => openModal(url));
+
+      // Crear botón eliminar
+      const deleteBtn = document.createElement('button');
+      deleteBtn.className = 'btn btn-sm btn-outline-danger eliminar-foto-extra';
+      deleteBtn.setAttribute('data-url', url);
+      deleteBtn.setAttribute('data-id', idBase);
+      deleteBtn.textContent = '✖';
+
+      nuevaFoto.appendChild(img);
+      nuevaFoto.appendChild(deleteBtn);
       listaFotos.appendChild(nuevaFoto);
 
       if (typeof mostrarToast === 'function') mostrarToast('✅ Foto adicional agregada');
@@ -353,6 +415,7 @@ async function agregarFotoExtra(btn) {
   };
   inputFile.click();
 }
+
 
 
 async function eliminarFotoExtra(idBase, url) {
@@ -369,6 +432,7 @@ async function eliminarFotoExtra(idBase, url) {
 
   if (typeof mostrarToast === 'function') mostrarToast('✅ Foto extra eliminada');
 }
+
 
 
 async function agregarImagenPrincipal(btn) {
@@ -395,7 +459,13 @@ async function agregarImagenPrincipal(btn) {
       const img = fila.querySelector('td:first-child img');
       if (img) {
         img.src = getVersionUrl(url, '58');
-        img.onclick = () => openModal(url);
+        // Eliminar listener anterior si existe (para evitar duplicados)
+        if (img._clickHandler) {
+          img.removeEventListener('click', img._clickHandler);
+        }
+        const handler = () => openModal(url);
+        img.addEventListener('click', handler);
+        img._clickHandler = handler; // guardar referencia
       }
 
       if (typeof mostrarToast === 'function') mostrarToast('✅ Imagen principal actualizada');
@@ -427,13 +497,12 @@ function parsearTallesStock(cadena) {
 function agregarFilaColor(btn) {
   const contenedor = btn.closest('.colores-stock-container');
   const nuevaFila = document.createElement('div');
-  nuevaFila.className = 'fila-color d-flex align-items-center mb-1';
-  nuevaFila.style.gap = '5px';
+  nuevaFila.className = 'fila-color d-flex align-items-center mb-1'; // la clase .fila-color ya tiene gap:5px en CSS
   nuevaFila.innerHTML = `
-    <input type="text" class="form-control form-control-sm color-input" placeholder="Color" style="width: 100px;">
-    <input type="checkbox" class="talle-toggle" style="margin: 0 5px;">
+    <input type="text" class="form-control form-control-sm color-input" placeholder="Color">
+    <input type="checkbox" class="talle-toggle">
     <span class="small">Talles</span>
-    <input type="number" class="form-control form-control-sm stock-input" placeholder="Stock" style="flex: 1;">
+    <input type="number" class="form-control form-control-sm stock-input" placeholder="Stock">
     <button class="btn btn-sm btn-outline-danger eliminar-color" title="Eliminar color">✖</button>
   `;
   
@@ -490,11 +559,11 @@ function renderTablaProductos() {
   let html = `
     <div class="row">
       <div class="col-12">
-        <div class="admin-grupos-bar" style="display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 15px; align-items: center; overflow-x: auto; padding-bottom: 5px;">
+        <div class="admin-grupos-bar">
           <button id="adminBtnNuevoGrupo" class="btn btn-sm btn-success">+ Nuevo grupo</button>
           ${renderGruposHorizontal(productos)}
         </div>
-        <div id="adminSubgruposBar" class="admin-subgrupos-bar" style="display: none; flex-wrap: wrap; gap: 8px; margin-bottom: 15px; overflow-x: auto; padding-bottom: 5px;"></div>
+        <div id="adminSubgruposBar" class="admin-subgrupos-bar"></div>
       </div>
       <div class="col-12">
         <div class="d-flex justify-content-between mb-2">
@@ -503,17 +572,17 @@ function renderTablaProductos() {
             <button id="guardarTodosTablaBtn" class="btn btn-sm btn-primary">💾 Guardar todos</button>
           </div>
         </div>
-        <div style="overflow-x: auto;">
-          <table class="table table-striped table-hover" style="min-width: 800px;">
+        <div class="tabla-responsive">
+          <table class="table table-striped table-hover tabla-productos-admin">
             <thead>
               <tr>
-                <th style="width: 60px;">Imagen</th>
-                <th style="width: 80px;">Fotos extra</th>
-                <th style="width: 200px;">Producto</th>
-                <th style="width: 80px;">Precio</th>
-                <th style="min-width: 300px;">Colores / Talles / Stock</th>
-                <th style="min-width: 200px;">Descripción</th>
-                <th style="width: 120px;">Acciones</th>
+                <th class="th-imagen">Imagen</th>
+                <th class="th-fotos-extra">Fotos extra</th>
+                <th class="th-producto">Producto</th>
+                <th class="th-precio">Precio</th>
+                <th class="th-colores">Colores / Talles / Stock</th>
+                <th class="th-descripcion">Descripción</th>
+                <th class="th-acciones">Acciones</th>
               </tr>
             </thead>
             <tbody id="tabla-productos-body">
@@ -543,11 +612,11 @@ function renderGruposHorizontal(productos) {
   grupos.forEach(grupo => {
     const tieneSub = subgruposPorGrupo[grupo] && subgruposPorGrupo[grupo].size > 0;
     html += `
-      <div class="admin-grupo-item" data-grupo="${grupo}" style="display: inline-flex; align-items: center;">
+      <div class="admin-grupo-item" data-grupo="${grupo}">
         <button class="btn btn-outline-secondary btn-sm grupo-btn" data-grupo="${grupo}">
           ${grupo}
         </button>
-        ${tieneSub ? `<button class="btn btn-sm btn-link subgrupo-toggle-btn" data-grupo="${grupo}" style="padding: 0 5px;">▼</button>` : ''}
+        ${tieneSub ? `<button class="btn btn-sm btn-link subgrupo-toggle-btn" data-grupo="${grupo}">▼</button>` : ''}
       </div>
     `;
   });
@@ -565,29 +634,24 @@ function renderFilasTabla(productos) {
     const imagenMiniatura = getVersionUrl(p.imagen_url || '/static/img/fallback.webp', '58');
 
     const imagenPrincipalHTML = `
-      <div style="display: flex; flex-direction: column; align-items: center; gap: 6px;">
-        <button class="btn btn-sm btn-outline-secondary agregar-imagen-principal w-100" data-id="${idBase}" title="Cambiar imagen principal">
-          + 
-        </button>
-        <img src="${imagenMiniatura}" style="width:58px; height:58px; object-fit:cover; border-radius:4px; cursor:pointer;" onclick="openModal('${p.imagen_url || ''}')">
+      <div class="admin-img-principal-container">
+        <button class="btn btn-sm btn-outline-secondary agregar-imagen-principal w-100" data-id="${idBase}" title="Cambiar imagen principal">+</button>
+        <img src="${imagenMiniatura}" class="admin-img-thumb" data-modal-url="${p.imagen_url || ''}">
       </div>
     `;
-    let fotosExtraHTML = '';
-    fotosExtraHTML += `
+    
+    let fotosExtraHTML = `
       <div class="fotos-extra-header">
-        <button class="btn btn-sm btn-outline-secondary agregar-foto-extra w-100" data-id="${idBase}">
-          + 
-        </button>
+        <button class="btn btn-sm btn-outline-secondary agregar-foto-extra w-100" data-id="${idBase}">+</button>
       </div>
+      <div class="fotos-extra-list" data-id="${idBase}">
     `;
-
-    fotosExtraHTML += `<div class="fotos-extra-list" data-id="${idBase}">`;
 
     if (p.fotos_adicionales && p.fotos_adicionales.length) {
-       p.fotos_adicionales.forEach(url => {
+      p.fotos_adicionales.forEach(url => {
         fotosExtraHTML += `
           <div class="foto-extra-item d-flex align-items-center justify-content-between mb-1 p-1 border rounded">
-            <img src="${getVersionUrl(url, '58')}" style="width:58px; height:58px; object-fit:cover; border-radius:4px; cursor:pointer;" onclick="openModal('${url}')">
+            <img src="${getVersionUrl(url, '58')}" class="admin-img-thumb" data-modal-url="${url}">
             <button class="btn btn-sm btn-outline-danger eliminar-foto-extra" data-url="${url}" data-id="${idBase}">✖</button>
           </div>
         `;
@@ -613,30 +677,30 @@ function renderFilasTabla(productos) {
         const stockUnico = !tieneTalles ? (tallesObj['unico'] || 0) : 0;
 
         filasColoresHTML += `
-          <div class="fila-color d-flex align-items-center mb-1" style="gap: 5px;">
-            <input type="text" class="form-control form-control-sm color-input" value="${color.replace(/"/g, '&quot;')}" placeholder="Color" style="width: 100px;">
-            <input type="checkbox" class="talle-toggle" ${tieneTalles ? 'checked' : ''} style="margin: 0 5px;">
+          <div class="fila-color d-flex align-items-center mb-1 fila-color-gap">
+            <input type="text" class="form-control form-control-sm color-input" value="${color.replace(/"/g, '&quot;')}" placeholder="Color">
+            <input type="checkbox" class="talle-toggle">
             <span class="small">Talles</span>
             <input type="${tieneTalles ? 'text' : 'number'}" class="form-control form-control-sm ${tieneTalles ? 'talles-input' : 'stock-input'}" 
                    value="${tieneTalles ? tallesStr.replace(/"/g, '&quot;') : stockUnico}" 
-                   placeholder="${tieneTalles ? 'S:30, M:20' : 'Stock'}" style="flex: 1;">
-            <button class="btn btn-sm btn-outline-danger eliminar-fila-color" title="Eliminar color" style="color: red;">✖</button>
+                   placeholder="${tieneTalles ? 'S:30, M:20' : 'Stock'}">
+            <button class="btn btn-sm btn-outline-danger eliminar-fila-color" title="Eliminar color">✖</button>
           </div>
         `;
       });
     } else {
       filasColoresHTML = `
-        <div class="fila-color d-flex align-items-center mb-1" style="gap: 5px;">
-          <input type="text" class="form-control form-control-sm color-input" placeholder="Color" style="width: 100px;">
-          <input type="checkbox" class="talle-toggle" style="margin: 0 5px;">
+        <div class="fila-color d-flex align-items-center mb-1 fila-color-gap">
+          <input type="text" class="form-control form-control-sm color-input" placeholder="Color">
+          <input type="checkbox" class="talle-toggle">
           <span class="small">Talles</span>
-          <input type="number" class="form-control form-control-sm stock-input" placeholder="Stock" style="flex: 1;">
+          <input type="number" class="form-control form-control-sm stock-input" placeholder="Stock">
           <button class="btn btn-sm btn-outline-danger eliminar-color" title="Eliminar color">✖</button>
         </div>
       `;
     }
 
-    const agregarColorBtn = `<button class="btn btn-sm btn-outline-success agregar-fila-color mt-1" data-id="${idBase}" style="color: white;">➕ Agregar color</button>`;
+    const agregarColorBtn = `<button class="btn btn-sm btn-outline-success agregar-fila-color mt-1" data-id="${idBase}">➕ Agregar color</button>`;
 
     const coloresCellHTML = `
       <div class="colores-stock-container" data-id="${idBase}">
@@ -649,28 +713,24 @@ function renderFilasTabla(productos) {
 
     return `
       <tr data-id-base="${idBase}">
-         <td>${imagenPrincipalHTML}</td>
-        
-         <td>
-           <div class="fotos-extra-container" data-id="${idBase}">
-             ${fotosExtraHTML}
-           </div>
-         </td>
-         <td><input type="text" class="editable-input nombre-input form-control form-control-sm" value="${nombre.replace(/"/g, '&quot;')}" data-id="${idBase}" data-campo="nombre" style="border-color: white;"></td>
-         <td><input type="number" class="editable-input precio-input form-control form-control-sm" value="${precio}" data-id="${idBase}" data-campo="precio" step="0.01" min="0" style="width:80px; border-color: white;"></td>
-          <td>${coloresCellHTML}</td>
-          <td>${descripcionHTML}</td>
-          <td>
-            <div class="btn-group btn-group-sm">
-              <button class="btn btn-warning btn-sm guardar-producto" data-id="${idBase}" title="Guardar">💾</button>
-              <button class="btn btn-info btn-sm duplicar-producto" data-id="${idBase}" style="background-color:azure;" title="Duplicar">📋</button>
-              <button class="btn btn-danger btn-sm eliminar-producto" data-id="${idBase}" title="Eliminar">🗑️</button>
-            </div>
-          </td>
-        </tr>
+        <td>${imagenPrincipalHTML}</td>
+        <td><div class="fotos-extra-container" data-id="${idBase}">${fotosExtraHTML}</div></td>
+        <td><input type="text" class="editable-input nombre-input form-control form-control-sm" value="${nombre.replace(/"/g, '&quot;')}" data-id="${idBase}" data-campo="nombre"></td>
+        <td><input type="number" class="editable-input precio-input form-control form-control-sm" value="${precio}" data-id="${idBase}" data-campo="precio" step="0.01" min="0"></td>
+        <td>${coloresCellHTML}</td>
+        <td>${descripcionHTML}</td>
+        <td>
+          <div class="btn-group btn-group-sm">
+            <button class="btn btn-warning btn-sm guardar-producto" data-id="${idBase}" title="Guardar">💾</button>
+            <button class="btn btn-info btn-sm duplicar-producto" data-id="${idBase}" title="Duplicar">📋</button>
+            <button class="btn btn-danger btn-sm eliminar-producto" data-id="${idBase}" title="Eliminar">🗑️</button>
+          </div>
+        </td>
+      </tr>
     `;
   }).join('');
 }
+
 
 function mostrarSubgruposHorizontal(grupo) {
   const productos = window.todosLosProductos || [];
@@ -690,17 +750,17 @@ function mostrarSubgruposHorizontal(grupo) {
       </button>
     `).join('');
   }
-  html += `<button class="btn btn-sm btn-success agregar-subgrupo-btn" data-grupo="${grupo}" style="margin-left: 8px;">+ Subgrupo</button>`;
+  html += `<button class="btn btn-sm btn-success agregar-subgrupo-btn" data-grupo="${grupo}">+ Subgrupo</button>`;
 
   barraSub.innerHTML = html;
-  barraSub.style.display = 'flex';
+  barraSub.classList.add('admin-subgrupos-bar-visible');
   barraSub.dataset.currentGroup = grupo;
 }
 
 
 function ocultarSubgrupos() {
   const barraSub = document.getElementById('adminSubgruposBar');
-  if (barraSub) barraSub.style.display = 'none';
+  if (barraSub) barraSub.classList.remove('admin-subgrupos-bar-visible');
 }
 
 
@@ -844,14 +904,11 @@ function obtenerProductoDesdeFila(fila, idBase) {
 
   const fotosContainer = fila.querySelector('.fotos-extra-container');
   if (fotosContainer) {
-    const imagenes = fotosContainer.querySelectorAll('img');
+    const imagenes = fotosContainer.querySelectorAll('img.admin-img-thumb');
     const fotosUrls = [];
     imagenes.forEach(img => {
-      const onclick = img.getAttribute('onclick');
-      if (onclick) {
-        const match = onclick.match(/openModal\('([^']+)'\)/);
-        if (match) fotosUrls.push(match[1]);
-      }
+      const url = img.getAttribute('data-modal-url');
+      if (url) fotosUrls.push(url);
     });
     producto.fotos_adicionales = fotosUrls;
   }
@@ -989,13 +1046,13 @@ if (window.modoAdmin) {
   if (container) container.classList.remove('d-none');
 
   const formsList = document.getElementById('formsList');
-  if (formsList) formsList.style.display = 'none';
+  if (formsList) formsList.classList.add('d-none');
 
   const configurarCA = document.getElementById('configurarCA');
   if (configurarCA) configurarCA.classList.remove('d-none');
 
   const tableView = document.getElementById('tableView');
-  if (tableView) tableView.style.display = 'block';
+  if (tableView) tableView.classList.add('d-block');
 
   recargarProductos().then(() => {
     renderTablaProductos();
@@ -1008,18 +1065,25 @@ if (window.modoAdmin) {
   });
 
   const logoutWrapper = document.getElementById('logoutAdminWrapper');
-  if (logoutWrapper) logoutWrapper.style.display = 'block';
+  if (logoutWrapper) logoutWrapper.classList.remove('d-none');
 
   const configurarMP = document.getElementById('configurarMP');
   if (configurarMP) configurarMP.classList.remove('d-none');
 
   const loginToggleBtn = document.getElementById('loginToggleBtn');
-  if (loginToggleBtn) loginToggleBtn.style.display = 'none';
+  if (loginToggleBtn) loginToggleBtn.classList.add('d-none');
 
   const adminContainer = document.getElementById('adminFormsContainer');
   if (adminContainer) {
     adminContainer.addEventListener('click', async (e) => {
       const target = e.target;
+
+      if (target.classList.contains('admin-img-thumb')) {
+        e.preventDefault();
+        const url = target.getAttribute('data-modal-url');
+        if (url) openModal(url);
+        return;
+      }
 
       if (target.id === 'guardarTodosTablaBtn') {
         e.preventDefault();
@@ -1118,11 +1182,11 @@ if (window.modoAdmin) {
         const grupo = target.dataset.grupo;
         if (grupo) {
           const barraSub = document.getElementById('adminSubgruposBar');
-          if (barraSub.style.display === 'flex' && barraSub.dataset.currentGroup === grupo) {
+          if (barraSub && barraSub.classList.contains('admin-subgrupos-bar-visible') && barraSub.dataset.currentGroup === grupo) {
             ocultarSubgrupos();
           } else {
             mostrarSubgruposHorizontal(grupo);
-            barraSub.dataset.currentGroup = grupo;
+            if (barraSub) barraSub.dataset.currentGroup = grupo;
           }
         }
         return;
