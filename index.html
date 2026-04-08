@@ -48,58 +48,11 @@
            decoding="async">
     </div>
 
-
-
     <div class="text-center mb-4">
       <div class="descripcion-emprendimiento">
          Horario de atencion:<br>
          Lunes a Domingo<br>
          Desde las 13:00 hasta las 21:00 hs
-      </div>
-    </div>
- 
-  
-    <div id="configurarMP" class="d-none mt-10">
-      <button id="btnConfigurarMP" class="btn btn-sm btn-primary">
-        ⚙️ Configurar Mercado Pago
-      </button>
-    </div>
-
-    <div id="configurarCA" class="d-none mt-10">
-      <button id="btnConfigurarCA" class="btn btn-sm btn-primary">
-        📦 Configurar Correo Argentino
-      </button>
-    </div>   
-
-    <div id="modalConfigCA" class="modal-config-ca">
-      <div class="modal-config-ca-content">
-        <h3>📦 Configurar Correo Argentino</h3>
-        <form id="formConfigCA">
-          <h4>Credenciales Paq.ar</h4>
-          <input type="text" id="ca_agreement" placeholder="Agreement (código de acuerdo)" class="form-control mb-2" required>
-          <input type="text" id="ca_api_key" placeholder="API Key" class="form-control mb-2" required>
-      
-          <h4>Credenciales MiCorreo</h4>
-          <input type="text" id="ca_micorreo_user" placeholder="Usuario MiCorreo (email)" class="form-control mb-2" required autocomplete="username">
-          <input type="password" id="ca_micorreo_password" placeholder="Contraseña MiCorreo" class="form-control mb-2" required autocomplete="new-password">
-      
-          <h4>Datos del remitente (quien envía)</h4>
-          <input type="text" id="ca_nombre" placeholder="Nombre completo" class="form-control mb-2" required>
-          <input type="text" id="ca_calle" placeholder="Calle" class="form-control mb-2" required>
-          <input type="text" id="ca_altura" placeholder="Altura" class="form-control mb-2" required>
-          <input type="text" id="ca_localidad" placeholder="Localidad" class="form-control mb-2" required>
-          <input type="text" id="ca_provincia_codigo" placeholder="Código provincia (ej: C, B, X)" class="form-control mb-2" required>
-          <input type="text" id="ca_codigo_postal" placeholder="Código postal" class="form-control mb-2" required>
-      
-          <div class="mb-2">
-            <label><input type="checkbox" id="ca_test_mode" checked> Modo de pruebas (TEST)</label>
-          </div>
-      
-          <div class="mt-3">
-            <button type="submit" id="btnGuardarConfigCA" class="btn btn-primary">Guardar configuración</button>
-            <button type="button" id="btnCerrarModalCA" class="btn btn-secondary">Cancelar</button>
-          </div>
-        </form>
       </div>
     </div>
   
@@ -171,17 +124,9 @@
         </div>
       </div>
     </template>
-       
-    <button id="volverArriba" class="btn-volver-arriba">↑</button>
 
     <div id="contenedor-grupos"></div>  
-
-    <div id="adminFormsContainer" class="d-none admin-forms-container">
-      <div id="tableView"></div>
-    </div>
-
     <div id="paginacion" class="text-center mt-3"></div>  
-  
     <div class="social-icons">
 
       <a href="https://www.facebook.com/marisa.trigo.1" target="_blank">
@@ -214,6 +159,8 @@
         </a>
     </div>
 
+</main>
+
     <div id="loginFloatingForm" class="login-floating-form d-none">
       <form id="loginAdminForm">
         <input type="text" id="usuario_login" placeholder="Usuario" required class="form-control mb-2" autocomplete="username">
@@ -222,8 +169,58 @@
       </form>
     </div>
 
+    <button id="volverArriba" class="btn-volver-arriba">↑</button>
+        
     <div id="logoutAdminWrapper" class="text-center mt-4 d-none">
       <button id="btnSalirAdmin" class="btn-grupo">🚪 Salir de Admin</button>
+    </div>
+
+    <div id="adminFormsContainer" class="d-none admin-forms-container">
+      <div id="tableView"></div>
+    </div>    
+
+    <div id="configurarMP" class="d-none mt-10">
+      <button id="btnConfigurarMP" class="btn btn-sm btn-primary">
+        ⚙️ Configurar Mercado Pago
+      </button>
+    </div>
+
+    <div id="configurarCA" class="d-none mt-10">
+      <button id="btnConfigurarCA" class="btn btn-sm btn-primary">
+        📦 Configurar Correo Argentino
+      </button>
+    </div>   
+
+    <div id="modalConfigCA" class="modal-config-ca">
+      <div class="modal-config-ca-content">
+        <h3>📦 Configurar Correo Argentino</h3>
+        <form id="formConfigCA">
+          <h4>Credenciales Paq.ar</h4>
+          <input type="text" id="ca_agreement" placeholder="Agreement (código de acuerdo)" class="form-control mb-2" required>
+          <input type="text" id="ca_api_key" placeholder="API Key" class="form-control mb-2" required>
+      
+          <h4>Credenciales MiCorreo</h4>
+          <input type="text" id="ca_micorreo_user" placeholder="Usuario MiCorreo (email)" class="form-control mb-2" required autocomplete="username">
+          <input type="password" id="ca_micorreo_password" placeholder="Contraseña MiCorreo" class="form-control mb-2" required autocomplete="new-password">
+      
+          <h4>Datos del remitente (quien envía)</h4>
+          <input type="text" id="ca_nombre" placeholder="Nombre completo" class="form-control mb-2" required>
+          <input type="text" id="ca_calle" placeholder="Calle" class="form-control mb-2" required>
+          <input type="text" id="ca_altura" placeholder="Altura" class="form-control mb-2" required>
+          <input type="text" id="ca_localidad" placeholder="Localidad" class="form-control mb-2" required>
+          <input type="text" id="ca_provincia_codigo" placeholder="Código provincia (ej: C, B, X)" class="form-control mb-2" required>
+          <input type="text" id="ca_codigo_postal" placeholder="Código postal" class="form-control mb-2" required>
+      
+          <div class="mb-2">
+            <label><input type="checkbox" id="ca_test_mode" checked> Modo de pruebas (TEST)</label>
+          </div>
+      
+          <div class="mt-3">
+            <button type="submit" id="btnGuardarConfigCA" class="btn btn-primary">Guardar configuración</button>
+            <button type="button" id="btnCerrarModalCA" class="btn btn-secondary">Cancelar</button>
+          </div>
+        </form>
+      </div>
     </div>
 
     <div id="carrito">
