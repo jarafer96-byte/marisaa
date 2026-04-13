@@ -1,11 +1,3 @@
-.logo-anim-return {
-  transform: rotateY(360deg) !important;
-  transition: transform 0.8s cubic-bezier(0.2, 0.9, 0.4, 1.1), opacity 0.4s ease;
-}
-.toast-message {
-  white-space: nowrap;  /* Evita que el texto se divida en varias líneas */
-}
-
 @media (max-width: 480px) {
   .toast-message {
     font-size: 1rem;      /* Reduce ligeramente la fuente */
@@ -27,10 +19,6 @@
     font-size: 0.8rem;
     font-weight: bold;
     z-index: 10;
-}
-
-.card-back {
-    position: relative;
 }
 #carrito.carrito-visible { display: block; }
 .btn-grupo {
@@ -231,10 +219,6 @@
   cursor: pointer;
 }
 /* Opcional: si la imagen no tiene ya una clase base, puedes añadirle transición */
-.producto-img {
-  opacity: 0;
-  transition: opacity 0.3s ease;
-}
 .producto-img.img-loaded {
   opacity: 1;
 }
@@ -309,7 +293,6 @@
   align-items: center;
   z-index: 10000;
 }
-
 .modal-hidden {
   display: none !important;
 }
@@ -355,9 +338,6 @@
 .producto-img {
   width: 100%;
   height: 180px;
-  object-fit: contain;
-  border-radius: 4px;
-  cursor: pointer;
 }
 
 /* Cuerpo de la tarjeta */
@@ -377,14 +357,6 @@
 .producto-cantidad {
   width: 70px !important;
 }
-
-/* Reverso de la tarjeta */
-.card-back {
-  display: flex;
-  flex-direction: column;
-  height: 100%;
-}
-
 /* Botón reversa */
 .btn-reversa {
   position: absolute;
@@ -473,35 +445,8 @@
   flex: 1;
   width: 126px !important;
 }
-/* Estilos base del modal (reemplazan los inline) */
-.modal-config-ca {
-  display: none;
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(0, 0, 0, 0.8);
-  z-index: 10001;
-  justify-content: center;
-  align-items: center;
-}
-
-/* Clase para mostrar el modal */
 #modalConfigCA.modal-visible {
   display: flex;
-}
-
-/* Estilos del contenido interno (opcional, ya los tenía el div interno) */
-.modal-config-ca > div {
-  background: #fff;
-  color: #000;
-  padding: 20px;
-  border-radius: 10px;
-  max-width: 500px;
-  width: 90%;
-  max-height: 80%;
-  overflow: auto;
 }
 .admin-img-principal-container {
   display: flex;
@@ -563,19 +508,10 @@
   cursor: pointer;
 }
 .logo-anim-start {
-  pointer-events: none;
-  transition: transform 0.8s ease, opacity 0.4s ease;
-  transform: rotateY(360deg);
-  opacity: 0.7;
-}
-
-.logo-anim-end {
-  transform: rotateY(0deg);
-  opacity: 1;
-  pointer-events: auto;
-  transition: none;
+    transform: rotateY(360deg) !important;
 }
 .toast-message {
+  white-space: nowrap;
   position: fixed;
   top: 50%;
   left: 50%;
@@ -631,20 +567,6 @@
   display: none !important;
 }
 
-/* Estilos para el modal de imagen (reemplaza style="display:none; max-width:90%; max-height:90%;" y el fondo) */
-.modal-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(0, 0, 0, 0.8);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 10000;
-}
-
 .modal-img {
   max-width: 90%;
   max-height: 90%;
@@ -666,21 +588,6 @@
 /* Opcional: si no usas Bootstrap, define la clase d-none */
 .d-none {
   display: none !important;
-}
-
-/* Estilos para los botones de navegación (reemplaza los estilos que tenían inline en .barra-navegacion button) */
-.btn-nav {
-  font-family: 'Raleway', sans-serif;
-  font-weight: 600;
-  font-size: 14px;
-  padding: 8px 15px;
-  border-radius: 30px;
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  background: rgba(255, 255, 255, 0.05);
-  color: white;
-  box-shadow: 0 0 6px rgba(255, 255, 255, 0.2);
-  transition: transform 0.3s ease, background-color 0.2s ease, color 0.2s ease;
-  cursor: pointer;
 }
 
 .btn-nav:hover {
@@ -736,10 +643,6 @@
 
 /* Selectores de color/talle */
 .form-select-sm {
-    border-radius: 30px;
-    background-color: rgba(255,255,255,0.1);
-    border: 1px solid rgba(255,255,255,0.3);
-    color: white;
     font-size: 0.8rem !important;
     cursor: pointer;
 }
@@ -795,10 +698,8 @@
 #carrito { position: fixed; bottom: 80px; right: 20px; padding: 15px; border-radius: 10px; width: 320px; z-index: 999; display: none; }
 .card-front, .card-back { position: absolute; backdrop-filter: blur(120px); width: 100%; height: 100%; backface-visibility: hidden; padding: 15px; background-color: rgba(0,0,0,0.6); border: 1px solid rgba(255,255,255,0.2); box-shadow: 0 8px 20px rgba(0,0,0,0.3); }  
 h1, h2, h3, .btn, .card { font-family: 'Raleway', sans-serif; }
-.text-center { text-align: center; }
 .mt-5 { margin-top: 3rem; }
 .mb-1 { margin-bottom: 0.25rem; }
-.mb-4 { margin-bottom: 1.5rem; }
 .d-inline-block { display: inline-block; }
 .w-auto { width: auto; }
 .d-none { display: none; }
@@ -807,26 +708,6 @@ h1, h2, h3, .btn, .card { font-family: 'Raleway', sans-serif; }
   font-size: 0.875rem !important;
   border-radius: 0.2rem !important;
 }
-.btn-primary {
-  color: #fff;
-  background-color: #0d6efd;
-  border-color: #0d6efd;
-}
-.form-select {
-  display: block;
-  width: 100%;
-  font-weight: 400;
-  line-height: 1.5;
-  color: #212529;
-  background-color: #fff;
-  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23343a40' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='m2 5 6 6 6-6'/%3e%3c/svg%3e");
-  background-repeat: no-repeat;
-  background-position: right 0.75rem center;
-  background-size: 16px 12px;
-  border: 1px solid #ced4da;
-  border-radius: 0.25rem;
-  appearance: none;
-}  
 
 .subgrupo-btn.active {
   background-color: #007bff !important;
@@ -840,7 +721,7 @@ h1, h2, h3, .btn, .card { font-family: 'Raleway', sans-serif; }
   width: 100%;
   height: 100%;
   min-height: 100vh;
-  background-image: url('/static/img/ciudad.webp');
+  background-image: url('/static/img/mini_2_83838.webp');
   background-size: cover;
   background-position: center;
   z-index: -2;
@@ -976,6 +857,10 @@ h1, h2, h3, .btn, .card { font-family: 'Raleway', sans-serif; }
   align-items: center;
   text-align: center;
   overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  position: relative;
 }
 .btn-girar,
 .btn-reversa {
@@ -1281,11 +1166,6 @@ h1, h2, h3, .btn, .card { font-family: 'Raleway', sans-serif; }
   border-color: #28a745;
   color: #fff;
 }
-.btn-primary {
-  background-color: #007bff;
-  border-color: #007bff;
-  color: #fff;
-}
 .d-flex.justify-content-between {
   margin-bottom: 1rem;
 }
@@ -1413,23 +1293,12 @@ h1, h2, h3, .btn, .card { font-family: 'Raleway', sans-serif; }
   will-change: transform, box-shadow;
   box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
 }
-.text-center {
-  text-align: center;
-}
 .mt-5 { margin-top: 3rem; }
 .mb-1 { margin-bottom: 0.25rem; }
-.mb-4 { margin-bottom: 1.5rem; }
 .d-inline-block { display: inline-block; }
-.w-auto { width: auto; }
 .d-none { display: none; }
-.btn-sm {
-  padding: 0.25rem 0.5rem;
-  font-size: 0.875rem;
-  border-radius: 0.2rem;
-}
 .form-select {
   display: block;
-  width: 100%;
   font-weight: 400;
   line-height: 1.5;
   color: #212529;
