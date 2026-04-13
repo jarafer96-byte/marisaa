@@ -1,30 +1,49 @@
 window.todosLosProductos = window.todosLosProductos || [];
 
 async function guardarProducto(producto, formDiv, skipReload = false) {
-  const email = window.cliente?.email;
-  if (!email) {
-    alert("❌ No hay email de admin, no se puede guardar");
+  // 🔒 Evitar múltiples guardados simultáneos
+  if (window._guardandoProducto) {
+    console.warn("Ya hay una operación de guardado en curso");
     return false;
   }
+  window._guardandoProducto = true;
 
-  let idBase = formDiv?.dataset?.idBase;
-  let esEdicion = !!idBase && !idBase.startsWith('nuevo_');
-
-  if (idBase && idBase.startsWith('nuevo_')) {
-    delete producto.id_base;
-    idBase = null;
-  }
-
-  const payload = {
-    producto: producto,
-    email: email,
-    es_edicion: esEdicion
-  };
-  if (esEdicion) {
-    payload.producto.id_base = idBase;
+  // Deshabilitar el botón de guardar si existe
+  let boton = null;
+  let textoOriginal = '';
+  if (formDiv && typeof formDiv.querySelector === 'function') {
+    boton = formDiv.querySelector('button.guardar-producto, button[type="submit"]');
+    if (boton) {
+      textoOriginal = boton.innerHTML;
+      boton.disabled = true;
+      boton.innerHTML = '⏳ Guardando...';
+    }
   }
 
   try {
+    const email = window.cliente?.email;
+    if (!email) {
+      alert("❌ No hay email de admin, no se puede guardar");
+      return false;
+    }
+
+    let idBase = formDiv?.dataset?.idBase;
+    let esEdicion = !!idBase && !idBase.startsWith('nuevo_');
+
+    if (idBase && idBase.startsWith('nuevo_')) {
+      delete producto.id_base;
+      idBase = null;
+    }
+
+    const payload = {
+      producto: producto,
+      email: email,
+      es_edicion: esEdicion
+    };
+    if (esEdicion) {
+      payload.producto.id_base = idBase;
+    }
+
     const resp = await fetch("/guardar-producto", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -50,6 +69,13 @@ async function guardarProducto(producto, formDiv, skipReload = false) {
   } catch (err) {
     alert("❌ Error: " + err.message);
     return false;
+  } finally {
+    // Restaurar estado y habilitar botón
+    window._guardandoProducto = false;
+    if (boton) {
+      boton.disabled = false;
+      boton.innerHTML = textoOriginal || '💾 Guardar';
+    }
   }
 }
 
@@ -165,25 +191,42 @@ function cerrarModalConfigCA() {
 
 
 async function eliminarProducto(id_base) {
-  if (id_base && id_base.startsWith('nuevo_')) {
-    const index = window.todosLosProductos.findIndex(p => p.id_base === id_base);
-    if (index !== -1) {
-      window.todosLosProductos.splice(index, 1);
-      const grupoActivo = document.querySelector('.grupo-btn.active');
-      const grupo = grupoActivo ? grupoActivo.dataset.grupo : null;
-      const subgrupoActivo = document.querySelector('.subgrupo-btn.active');
-      const subgrupo = subgrupoActivo ? subgrupoActivo.dataset.subgrupo : null;
-      if (grupo) {
-        filtrarProductos(grupo, subgrupo);
-      } else {
-        renderTablaProductos();
-      }
-      if (typeof mostrarToast === 'function') mostrarToast('✅ Producto eliminado (sin guardar)');
-    }
+  // 🔒 Evita ejecuciones simultáneas
+  if (window._eliminandoProducto) {
+    console.warn("Ya hay una operación de eliminación en curso");
     return;
+  }
+  window._eliminandoProducto = true;
+
+  // Buscar el botón eliminar asociado (si existe)
+  const boton = document.querySelector(`.eliminar-producto[data-id="${id_base}"]`);
+  const textoOriginal = boton?.innerHTML;
+  if (boton) {
+    boton.disabled = true;
+    boton.innerHTML = '⏳';
   }
 
   try {
+    // Caso: producto temporal (no guardado aún)
+    if (id_base && id_base.startsWith('nuevo_')) {
+      const index = window.todosLosProductos.findIndex(p => p.id_base === id_base);
+      if (index !== -1) {
+        window.todosLosProductos.splice(index, 1);
+        const grupoActivo = document.querySelector('.grupo-btn.active');
+        const grupo = grupoActivo ? grupoActivo.dataset.grupo : null;
+        const subgrupoActivo = document.querySelector('.subgrupo-btn.active');
+        const subgrupo = subgrupoActivo ? subgrupoActivo.dataset.subgrupo : null;
+        if (grupo) {
+          filtrarProductos(grupo, subgrupo);
+        } else {
+          renderTablaProductos();
+        }
+        if (typeof mostrarToast === 'function') mostrarToast('✅ Producto eliminado (sin guardar)');
+      }
+      return;
+    }
+
+    // Caso: producto real (ya guardado en BD)
     const resp = await fetch("/eliminar-producto", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -199,6 +242,12 @@ async function eliminarProducto(id_base) {
     }
   } catch (err) {
     alert("Error al eliminar producto: " + err.message);
+  } finally {
+    window._eliminandoProducto = false;
+    if (boton) {
+      boton.disabled = false;
+      boton.innerHTML = textoOriginal || '🗑️';
+    }
   }
 }
 
@@ -254,41 +303,64 @@ async function subirImagen(blob) {
 
 
 function duplicarProductoDesdeCard(id_base) {
-  const original = window.todosLosProductos?.find(p => p.id_base === id_base);
-  if (!original) {
-    alert("❌ Producto no encontrado");
+  // 🔒 Evita duplicaciones múltiples simultáneas
+  if (window._duplicandoProducto) {
+    console.warn("Ya hay una operación de duplicación en curso");
     return;
   }
+  window._duplicandoProducto = true;
 
-  const copia = JSON.parse(JSON.stringify(original));
-
-  delete copia.id_base;
-  copia.id_base = 'nuevo_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
-
-  copia.imagen_url = '';
-  copia.fotos_adicionales = [];
-
-  window.todosLosProductos.push(copia);
-
-  const grupoActivo = document.querySelector('.grupo-btn.active');
-  const grupo = grupoActivo ? grupoActivo.dataset.grupo : null;
-  const subgrupoActivo = document.querySelector('.subgrupo-btn.active');
-  const subgrupo = subgrupoActivo ? subgrupoActivo.dataset.subgrupo : null;
-
-  if (grupo) {
-    filtrarProductos(grupo, subgrupo);
-  } else {
-    renderTablaProductos();
+  const boton = document.querySelector(`.duplicar-producto[data-id="${id_base}"]`);
+  const textoOriginal = boton?.innerHTML;
+  if (boton) {
+    boton.disabled = true;
+    boton.innerHTML = '⏳';
   }
 
-  setTimeout(() => {
-    const nuevaFila = document.querySelector(`tr[data-id-base="${copia.id_base}"]`);
-    if (nuevaFila) {
-      nuevaFila.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      nuevaFila.classList.add('table-active');
-      setTimeout(() => nuevaFila.classList.remove('table-active'), 2000);
+  try {
+    const original = window.todosLosProductos?.find(p => p.id_base === id_base);
+    if (!original) {
+      alert("❌ Producto no encontrado");
+      return;
     }
-  }, 100);
+
+    const copia = JSON.parse(JSON.stringify(original));
+
+    delete copia.id_base;
+    // Reemplazar substr (obsoleto) por substring
+    copia.id_base = 'nuevo_' + Date.now() + '_' + Math.random().toString(36).substring(2, 11);
+
+    copia.imagen_url = '';
+    copia.fotos_adicionales = [];
+
+    window.todosLosProductos.push(copia);
+
+    const grupoActivo = document.querySelector('.grupo-btn.active');
+    const grupo = grupoActivo ? grupoActivo.dataset.grupo : null;
+    const subgrupoActivo = document.querySelector('.subgrupo-btn.active');
+    const subgrupo = subgrupoActivo ? subgrupoActivo.dataset.subgrupo : null;
+
+    if (grupo) {
+      filtrarProductos(grupo, subgrupo);
+    } else {
+      renderTablaProductos();
+    }
+
+    setTimeout(() => {
+      const nuevaFila = document.querySelector(`tr[data-id-base="${copia.id_base}"]`);
+      if (nuevaFila) {
+        nuevaFila.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        nuevaFila.classList.add('table-active');
+        setTimeout(() => nuevaFila.classList.remove('table-active'), 2000);
+      }
+    }, 100);
+  } finally {
+    window._duplicandoProducto = false;
+    if (boton) {
+      boton.disabled = false;
+      boton.innerHTML = textoOriginal || '📋';
+    }
+  }
 }
 
 
@@ -366,13 +438,20 @@ if (loginAdminForm) {
 
 
 async function agregarFotoExtra(btn) {
+  // 🔒 Evita múltiples selecciones simultáneas
+  if (btn.disabled) return;
+  btn.disabled = true;
+
   const idBase = btn.dataset.id;
   const inputFile = document.createElement('input');
   inputFile.type = 'file';
   inputFile.accept = 'image/*';
   inputFile.onchange = async (e) => {
     const file = e.target.files[0];
-    if (!file) return;
+    if (!file) {
+      btn.disabled = false;
+      return;
+    }
 
     try {
       const blob = await optimizarImagen(file);
@@ -389,11 +468,10 @@ async function agregarFotoExtra(btn) {
       const nuevaFoto = document.createElement('div');
       nuevaFoto.className = 'foto-extra-item d-flex align-items-center justify-content-between mb-1 p-1 border rounded';
 
-      // Crear imagen con las clases correctas y atributo data-modal-url
       const img = document.createElement('img');
       img.src = getVersionUrl(url, '58');
-      img.className = 'admin-img-thumb foto-extra-thumb';   // ← clase añadida
-      img.setAttribute('data-modal-url', url);              // ← atributo necesario
+      img.className = 'admin-img-thumb foto-extra-thumb';
+      img.setAttribute('data-modal-url', url);
       img.alt = 'Foto adicional';
       img.addEventListener('click', () => openModal(url));
 
@@ -410,6 +488,8 @@ async function agregarFotoExtra(btn) {
       if (typeof mostrarToast === 'function') mostrarToast('✅ Foto adicional agregada');
     } catch (err) {
       alert('Error al subir imagen: ' + err.message);
+    } finally {
+      btn.disabled = false;
     }
   };
   inputFile.click();
@@ -418,33 +498,66 @@ async function agregarFotoExtra(btn) {
 
 
 async function eliminarFotoExtra(idBase, url) {
-  const producto = window.todosLosProductos.find(p => p.id_base === idBase);
-  if (producto && producto.fotos_adicionales) {
-    const index = producto.fotos_adicionales.indexOf(url);
-    if (index !== -1) {
-      producto.fotos_adicionales.splice(index, 1);
-    }
+  // 🔒 Evita eliminaciones múltiples simultáneas
+  if (window._eliminandoFotoExtra) {
+    console.warn("Ya hay una operación de eliminación de foto en curso");
+    return;
+  }
+  window._eliminandoFotoExtra = true;
+
+  // Buscar el botón eliminar asociado (para deshabilitarlo)
+  const boton = document.querySelector(`.eliminar-foto-extra[data-id="${idBase}"][data-url="${url}"]`);
+  const textoOriginal = boton?.innerHTML;
+  if (boton) {
+    boton.disabled = true;
+    boton.innerHTML = '⏳';
   }
 
-  const fotoDiv = document.querySelector(`.fotos-extra-container[data-id="${idBase}"] [data-url="${url}"]`)?.closest('div');
-  if (fotoDiv) fotoDiv.remove();
+  try {
+    const producto = window.todosLosProductos.find(p => p.id_base === idBase);
+    if (producto && producto.fotos_adicionales) {
+      const index = producto.fotos_adicionales.indexOf(url);
+      if (index !== -1) {
+        producto.fotos_adicionales.splice(index, 1);
+      }
+    }
 
-  if (typeof mostrarToast === 'function') mostrarToast('✅ Foto extra eliminada');
+    const fotoDiv = document.querySelector(`.fotos-extra-container[data-id="${idBase}"] [data-url="${url}"]`)?.closest('div');
+    if (fotoDiv) fotoDiv.remove();
+
+    if (typeof mostrarToast === 'function') mostrarToast('✅ Foto extra eliminada');
+  } finally {
+    window._eliminandoFotoExtra = false;
+    if (boton) {
+      boton.disabled = false;
+      boton.innerHTML = textoOriginal || '✖';
+    }
+  }
 }
 
 
 
 async function agregarImagenPrincipal(btn) {
+  // 🔒 Evita múltiples selecciones simultáneas
+  if (btn.disabled) return;
+  btn.disabled = true;
+
   const idBase = btn.dataset.id;
   const fila = btn.closest('tr');
-  if (!fila) return;
+  if (!fila) {
+    btn.disabled = false;
+    return;
+  }
 
   const inputFile = document.createElement('input');
   inputFile.type = 'file';
   inputFile.accept = 'image/*';
   inputFile.onchange = async (e) => {
     const file = e.target.files[0];
-    if (!file) return;
+    if (!file) {
+      btn.disabled = false;
+      return;
+    }
 
     try {
       const blob = await optimizarImagen(file);
@@ -458,18 +571,19 @@ async function agregarImagenPrincipal(btn) {
       const img = fila.querySelector('td:first-child img');
       if (img) {
         img.src = getVersionUrl(url, '58');
-        // Eliminar listener anterior si existe (para evitar duplicados)
         if (img._clickHandler) {
           img.removeEventListener('click', img._clickHandler);
         }
         const handler = () => openModal(url);
         img.addEventListener('click', handler);
-        img._clickHandler = handler; // guardar referencia
+        img._clickHandler = handler;
       }
 
       if (typeof mostrarToast === 'function') mostrarToast('✅ Imagen principal actualizada');
     } catch (err) {
       alert('Error al subir imagen: ' + err.message);
+    } finally {
+      btn.disabled = false;
     }
   };
   inputFile.click();
@@ -768,30 +882,53 @@ function ocultarSubgrupos() {
 
 
 async function agregarSubgrupo(grupo) {
-  const nombreSubgrupo = prompt('Ingrese el nombre del nuevo subgrupo:');
-  if (!nombreSubgrupo) return;
-
-  const existe = window.todosLosProductos.some(p => p.grupo === grupo && p.subgrupo === nombreSubgrupo);
-  if (existe) {
-    alert('El subgrupo ya existe en este grupo.');
+  // 🔒 Evita múltiples creaciones simultáneas
+  if (window._agregandoSubgrupo) {
+    console.warn("Ya hay una operación de creación de subgrupo en curso");
     return;
   }
+  window._agregandoSubgrupo = true;
 
-  const tempId = 'nuevo_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
-  const nuevoProducto = {
-    id_base: tempId,
-    nombre: '(nuevo producto)',
-    precio: 0,
-    grupo: grupo,
-    subgrupo: nombreSubgrupo,
-    descripcion: '',
-    imagen_url: '',
-    fotos_adicionales: [],
-  };
-  window.todosLosProductos.push(nuevoProducto);
-  filtrarProductos(grupo, null);
+  // Buscar el botón que activó la acción para deshabilitarlo
+  const boton = document.querySelector(`.agregar-subgrupo-btn[data-grupo="${grupo}"]`);
+  const textoOriginal = boton?.innerHTML;
+  if (boton) {
+    boton.disabled = true;
+    boton.innerHTML = '⏳';
+  }
+
+  try {
+    const nombreSubgrupo = prompt('Ingrese el nombre del nuevo subgrupo:');
+    if (!nombreSubgrupo) return;
+
+    const existe = window.todosLosProductos.some(p => p.grupo === grupo && p.subgrupo === nombreSubgrupo);
+    if (existe) {
+      alert('El subgrupo ya existe en este grupo.');
+      return;
+    }
+
+    // Reemplazar substr (obsoleto) por substring
+    const tempId = 'nuevo_' + Date.now() + '_' + Math.random().toString(36).substring(2, 11);
+    const nuevoProducto = {
+      id_base: tempId,
+      nombre: '(nuevo producto)',
+      precio: 0,
+      grupo: grupo,
+      subgrupo: nombreSubgrupo,
+      descripcion: '',
+      imagen_url: '',
+      fotos_adicionales: [],
+    };
+    window.todosLosProductos.push(nuevoProducto);
+    filtrarProductos(grupo, null);
+  } finally {
+    window._agregandoSubgrupo = false;
+    if (boton) {
+      boton.disabled = false;
+      boton.innerHTML = textoOriginal || '+ Subgrupo';
+    }
+  }
 }
-
 
 function filtrarProductos(grupo, subgrupo = null) {
   const productos = window.todosLosProductos || [];
@@ -942,11 +1079,19 @@ function getCurrentSelectedGroup() {
 
 
 async function agregarNuevoProducto() {
+  // 🔒 Evita múltiples creaciones simultáneas
+  if (window._agregandoProducto) {
+    console.warn("Ya hay una operación de creación de producto en curso");
+    return;
+  }
+  window._agregandoProducto = true;
+
   const grupoBtnActivo = document.querySelector('.grupo-btn.active');
   const grupoActual = grupoBtnActivo ? grupoBtnActivo.dataset.grupo : null;
 
   if (!grupoActual) {
     alert('Selecciona un grupo específico (no "Todos") para crear un producto en ese grupo, o crea un grupo primero.');
+    window._agregandoProducto = false;
     return;
   }
 
@@ -957,10 +1102,9 @@ async function agregarNuevoProducto() {
     subgrupoActual = subgrupoBtnActivo.dataset.subgrupo;
   } else if (window.currentAdminSubgrupo) {
     subgrupoActual = window.currentAdminSubgrupo;
-  } else {
   }
 
-  const tempId = 'nuevo_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+  const tempId = 'nuevo_' + Date.now() + '_' + Math.random().toString(36).substring(2, 11);
   const nuevoProducto = {
     id_base: tempId,
     nombre: '',
@@ -974,12 +1118,35 @@ async function agregarNuevoProducto() {
 
   window.todosLosProductos.push(nuevoProducto);
   filtrarProductos(grupoActual, subgrupoActual);
+
+  window._agregandoProducto = false;
 }
 
 
 async function guardarTodosProductos() {
+  // 🔒 Evita ejecuciones simultáneas del guardado masivo
+  if (window._guardandoTodos) {
+    alert("⏳ Ya hay un guardado masivo en curso. Espera un momento.");
+    return;
+  }
+  window._guardandoTodos = true;
+
+  const btnGuardarTodos = document.getElementById('guardarTodosTablaBtn');
+  const textoOriginalBtn = btnGuardarTodos?.innerHTML;
+  if (btnGuardarTodos) {
+    btnGuardarTodos.disabled = true;
+    btnGuardarTodos.textContent = 'Guardando todos...';
+  }
+
   const filas = document.querySelectorAll('#tabla-productos-body tr');
-  if (filas.length === 0) return;
+  if (filas.length === 0) {
+    if (btnGuardarTodos) {
+      btnGuardarTodos.disabled = false;
+      btnGuardarTodos.textContent = textoOriginalBtn || '💾 Guardar todos';
+    }
+    window._guardandoTodos = false;
+    return;
+  }
 
   const productosAGuardar = [];
   filas.forEach(fila => {
@@ -991,16 +1158,19 @@ async function guardarTodosProductos() {
 
   let guardados = 0;
   const errores = [];
+
   for (const producto of productosAGuardar) {
     try {
       const formDiv = { dataset: { idBase: producto.id_base } };
-      const resultado = await guardarProducto(producto, formDiv, true); 
+      // Usamos skipReload = true para no recargar la tabla hasta el final
+      const resultado = await guardarProducto(producto, formDiv, true);
       if (resultado) guardados++;
     } catch (error) {
-      errores.push(producto.nombre);
+      errores.push(producto.nombre || producto.id_base);
     }
   }
 
+  // Recargar una sola vez al terminar todos
   await recargarProductos();
   renderTablaProductos();
 
@@ -1010,20 +1180,38 @@ async function guardarTodosProductos() {
   } else {
     alert(mensaje);
   }
+
+  // Restaurar botón
+  if (btnGuardarTodos) {
+    btnGuardarTodos.disabled = false;
+    btnGuardarTodos.textContent = textoOriginalBtn || '💾 Guardar todos';
+  }
+  window._guardandoTodos = false;
 }
 
 
 function agregarNuevoGrupo() {
+  // 🔒 Evita múltiples creaciones simultáneas
+  if (window._agregandoGrupo) {
+    console.warn("Ya hay una operación de creación de grupo en curso");
+    return;
+  }
+  window._agregandoGrupo = true;
+
   const nombreGrupo = prompt('Ingrese el nombre del nuevo grupo:');
-  if (!nombreGrupo) return;
+  if (!nombreGrupo) {
+    window._agregandoGrupo = false;
+    return;
+  }
 
   if (window.todosLosProductos.some(p => p.grupo === nombreGrupo)) {
     alert('El grupo ya existe.');
+    window._agregandoGrupo = false;
     return;
   }
 
   const nuevoProducto = {
-    id_base: 'nuevo_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9),
+    id_base: 'nuevo_' + Date.now() + '_' + Math.random().toString(36).substring(2, 11),
     nombre: '(nuevo producto)',
     precio: 0,
     grupo: nombreGrupo,
@@ -1040,6 +1228,7 @@ function agregarNuevoGrupo() {
     if (nuevoGrupoHeader) {
       nuevoGrupoHeader.click();
     }
+    window._agregandoGrupo = false;
   }, 100);
 }
 
