@@ -867,27 +867,27 @@ function mostrarSubgruposHorizontal(grupo) {
   if (!barraSub) return;
 
   let html = '';
-  if (subgrupos.length > 0) {
-    html = subgrupos.map(sub => `
+  // Botones para cada subgrupo existente
+  subgrupos.forEach(sub => {
+    html += `
       <button class="btn btn-sm btn-outline-secondary subgrupo-btn" data-grupo="${grupo}" data-subgrupo="${sub}">
         📂 ${sub}
       </button>
-    `).join('');
-  }
+    `;
+  });
+  // Siempre el botón para crear nuevo subgrupo
   html += `<button class="btn btn-sm btn-success agregar-subgrupo-btn" data-grupo="${grupo}">+ Subgrupo</button>`;
 
   barraSub.innerHTML = html;
   barraSub.classList.add('admin-subgrupos-bar-visible');
   barraSub.dataset.currentGroup = grupo;
 
-  // ⭐ NUEVO: Si después de renderizar no hay ningún subgrupo activo, seleccionar automáticamente el primero.
+  // Si hay subgrupos y ninguno está activo, seleccionar el primero automáticamente
   setTimeout(() => {
     const activo = barraSub.querySelector('.subgrupo-btn.active');
-    if (!activo) {
+    if (!activo && subgrupos.length > 0) {
       const primerSub = barraSub.querySelector('.subgrupo-btn');
-      if (primerSub) {
-        primerSub.click();
-      }
+      if (primerSub) primerSub.click();
     }
   }, 30);
 }
@@ -971,7 +971,7 @@ function filtrarProductos(grupo, subgrupo = null) {
     }
   });
 
-  // ✅ Siempre mostrar la barra de subgrupos (con el botón "+ Subgrupo")
+  // ✅ Siempre mostrar la barra de subgrupos si hay un grupo seleccionado (no "Todos")
   if (grupo && grupo !== 'todos') {
     mostrarSubgruposHorizontal(grupo);
   } else {
@@ -980,28 +980,15 @@ function filtrarProductos(grupo, subgrupo = null) {
 
   // Actualizar clases activas en botones de subgrupo
   const subgrupoBtns = document.querySelectorAll('.subgrupo-btn');
-  let subgrupoActivo = false;
   subgrupoBtns.forEach(btn => {
     if (btn.dataset.grupo === grupo && btn.dataset.subgrupo === subgrupo) {
       btn.classList.add('active');
-      subgrupoActivo = true;
     } else {
       btn.classList.remove('active');
     }
   });
 
   window.currentAdminSubgrupo = subgrupo;
-
-  // ⭐ Si no se especificó un subgrupo (o no hay activo), intentar seleccionar el primer subgrupo disponible
-  if (!subgrupo && !subgrupoActivo) {
-    setTimeout(() => {
-      const primerSub = document.querySelector('#adminSubgruposBar .subgrupo-btn');
-      if (primerSub) {
-        primerSub.click();
-      }
-    }, 50);
-  }
-}
 
 
 function obtenerProductoDesdeFila(fila, idBase) {
@@ -1103,7 +1090,10 @@ function getCurrentSelectedGroup() {
 
 
 async function agregarNuevoProducto() {
-  if (window._agregandoProducto) return;
+  if (window._agregandoProducto) {
+    console.warn("Ya hay una operación de creación de producto en curso");
+    return;
+  }
   window._agregandoProducto = true;
 
   const grupoBtnActivo = document.querySelector('.grupo-btn.active');
@@ -1115,36 +1105,30 @@ async function agregarNuevoProducto() {
     return;
   }
 
-  // ✅ Obtener el subgrupo activo (si existe)
-  const subgrupoActivo = document.querySelector('#adminSubgruposBar .subgrupo-btn.active');
+  // ✅ Si hay un subgrupo activo, usarlo; si no, subgrupo queda vacío (permitido)
   let subgrupoActual = '';
+  const subgrupoActivo = document.querySelector('#adminSubgruposBar .subgrupo-btn.active');
   if (subgrupoActivo) {
     subgrupoActual = subgrupoActivo.dataset.subgrupo;
-  } else {
-    // Si no hay subgrupo activo, significa que el grupo no tiene subgrupos aún.
-    // En lugar de crear un producto con subgrupo vacío, mostrar mensaje y salir.
-    alert('Primero debes crear al menos un subgrupo para este grupo usando el botón "+ Subgrupo".');
-    window._agregandoProducto = false;
-    return;
   }
 
   const tempId = 'nuevo_' + Date.now() + '_' + Math.random().toString(36).substring(2, 11);
   const nuevoProducto = {
     id_base: tempId,
-    nombre: '(nuevo producto)',
+    nombre: '',
     precio: 0,
     grupo: grupoActual,
-    subgrupo: subgrupoActual,
+    subgrupo: subgrupoActual,   // puede ser cadena vacía
     descripcion: '',
     imagen_url: '',
     fotos_adicionales: [],
   };
 
   window.todosLosProductos.push(nuevoProducto);
-  filtrarProductos(grupoActual, subgrupoActual);
+  // Mostrar el grupo sin filtrar por subgrupo (para que el producto nuevo aparezca)
+  filtrarProductos(grupoActual, null);
   window._agregandoProducto = false;
 }
-
 
 async function guardarTodosProductos() {
   if (window._guardandoTodos) {
