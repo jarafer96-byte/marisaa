@@ -1103,35 +1103,35 @@ function getCurrentSelectedGroup() {
 
 
 async function agregarNuevoProducto() {
-  // 🔒 Evita múltiples creaciones simultáneas
-  if (window._agregandoProducto) {
-    console.warn("Ya hay una operación de creación de producto en curso");
-    return;
-  }
+  if (window._agregandoProducto) return;
   window._agregandoProducto = true;
 
   const grupoBtnActivo = document.querySelector('.grupo-btn.active');
   const grupoActual = grupoBtnActivo ? grupoBtnActivo.dataset.grupo : null;
 
   if (!grupoActual) {
-    alert('Selecciona un grupo específico (no "Todos") para crear un producto en ese grupo, o crea un grupo primero.');
+    alert('Selecciona un grupo específico (no "Todos") para crear un producto.');
     window._agregandoProducto = false;
     return;
   }
 
-  const subgrupoBtnActivo = document.querySelector('#adminSubgruposBar .subgrupo-btn.active');
+  // ✅ Obtener el subgrupo activo (si existe)
+  const subgrupoActivo = document.querySelector('#adminSubgruposBar .subgrupo-btn.active');
   let subgrupoActual = '';
-
-  if (subgrupoBtnActivo) {
-    subgrupoActual = subgrupoBtnActivo.dataset.subgrupo;
-  } else if (window.currentAdminSubgrupo) {
-    subgrupoActual = window.currentAdminSubgrupo;
+  if (subgrupoActivo) {
+    subgrupoActual = subgrupoActivo.dataset.subgrupo;
+  } else {
+    // Si no hay subgrupo activo, significa que el grupo no tiene subgrupos aún.
+    // En lugar de crear un producto con subgrupo vacío, mostrar mensaje y salir.
+    alert('Primero debes crear al menos un subgrupo para este grupo usando el botón "+ Subgrupo".');
+    window._agregandoProducto = false;
+    return;
   }
 
   const tempId = 'nuevo_' + Date.now() + '_' + Math.random().toString(36).substring(2, 11);
   const nuevoProducto = {
     id_base: tempId,
-    nombre: '',
+    nombre: '(nuevo producto)',
     precio: 0,
     grupo: grupoActual,
     subgrupo: subgrupoActual,
@@ -1142,7 +1142,6 @@ async function agregarNuevoProducto() {
 
   window.todosLosProductos.push(nuevoProducto);
   filtrarProductos(grupoActual, subgrupoActual);
-
   window._agregandoProducto = false;
 }
 
