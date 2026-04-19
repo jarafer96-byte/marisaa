@@ -717,7 +717,7 @@ h1, h2, h3, .btn, .card { font-family: 'Raleway', sans-serif; }
 .fondo {
   position: fixed;
   top: 0;
-  filter: brightness(2.8) drop-shadow(0 0 10px white);
+  filter: brightness(1.0) drop-shadow(0 0 10px white);
   left: 0;
   width: 100%;
   height: 100%;
