@@ -21,7 +21,8 @@ async function guardarProducto(producto, formDiv, skipReload = false) {
   }
 
   try {
-    const email = window.cliente?.email;
+    // ⭐ Priorizar TARGET_EMAIL (master admin creando para otro) sobre cliente.email
+    const email = window.TARGET_EMAIL || window.cliente?.email;
     if (!email) {
       alert("❌ No hay email de admin, no se puede guardar");
       return false;
@@ -226,11 +227,14 @@ async function eliminarProducto(id_base) {
       return;
     }
 
+    // ⭐ Priorizar TARGET_EMAIL (master admin) sobre cliente.email
+    const email = window.TARGET_EMAIL || window.cliente?.email;
+
     // Caso: producto real (ya guardado en BD)
     const resp = await fetch("/eliminar-producto", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ id_base, email: window.cliente.email })
+      body: JSON.stringify({ id_base, email: email })
     });
     const data = await resp.json();
     if (data.status === "ok") {
@@ -291,7 +295,10 @@ async function optimizarImagen(file) {
 async function subirImagen(blob) {
   const formData = new FormData();
   formData.append('file', blob, 'imagen.webp');
-  formData.append('email', window.cliente.email);
+
+  const email = window.TARGET_EMAIL || window.cliente?.email;
+  formData.append('email', email);
+
   const resp = await fetch('/subir-foto', {
     method: 'POST',
     body: formData
@@ -872,8 +879,18 @@ function mostrarSubgruposHorizontal(grupo) {
   barraSub.innerHTML = html;
   barraSub.classList.add('admin-subgrupos-bar-visible');
   barraSub.dataset.currentGroup = grupo;
-}
 
+  // ⭐ NUEVO: Si después de renderizar no hay ningún subgrupo activo, seleccionar automáticamente el primero.
+  setTimeout(() => {
+    const activo = barraSub.querySelector('.subgrupo-btn.active');
+    if (!activo) {
+      const primerSub = barraSub.querySelector('.subgrupo-btn');
+      if (primerSub) {
+        primerSub.click();
+      }
+    }
+  }, 30);
+}
 
 function ocultarSubgrupos() {
   const barraSub = document.getElementById('adminSubgruposBar');
@@ -944,6 +961,7 @@ function filtrarProductos(grupo, subgrupo = null) {
     tbody.innerHTML = renderFilasTabla(filtrados);
   }
 
+  // Actualizar clases activas en botones de grupo
   const grupoBtns = document.querySelectorAll('.grupo-btn');
   grupoBtns.forEach(btn => {
     if (btn.dataset.grupo === grupo) {
@@ -953,6 +971,7 @@ function filtrarProductos(grupo, subgrupo = null) {
     }
   });
 
+  // Mostrar u ocultar barra de subgrupos
   if (grupo && grupo !== 'todos') {
     const subgrupos = [...new Set(
       window.todosLosProductos.filter(p => p.grupo === grupo)
@@ -968,6 +987,7 @@ function filtrarProductos(grupo, subgrupo = null) {
     ocultarSubgrupos();
   }
 
+  // Actualizar clases activas en botones de subgrupo
   const subgrupoBtns = document.querySelectorAll('.subgrupo-btn');
   subgrupoBtns.forEach(btn => {
     if (btn.dataset.grupo === grupo && btn.dataset.subgrupo === subgrupo) {
@@ -978,8 +998,21 @@ function filtrarProductos(grupo, subgrupo = null) {
   });
 
   window.currentAdminSubgrupo = subgrupo;
-}
 
+  // ⭐ NUEVO: Si no se especificó un subgrupo (ej. al cambiar de grupo),
+  // seleccionar automáticamente el primer subgrupo disponible después de que se renderice.
+  if (!subgrupo) {
+    setTimeout(() => {
+      const subgrupoActivo = document.querySelector('.subgrupo-btn.active');
+      if (!subgrupoActivo) {
+        const primerSub = document.querySelector('#adminSubgruposBar .subgrupo-btn');
+        if (primerSub) {
+          primerSub.click();
+        }
+      }
+    }, 50);
+  }
+}
 
 function obtenerProductoDesdeFila(fila, idBase) {
   const original = window.todosLosProductos.find(p => p.id_base === idBase) || {};
@@ -1061,10 +1094,11 @@ async function recargarProductos() {
   try {
     const email = window.cliente?.email;
     if (!email) return;
-    const resp = await fetch(`/api/productos`);
+    const resp = await fetch(`/api/productos?_=${Date.now()}`);
     const data = await resp.json();
     window.todosLosProductos = Array.isArray(data) ? data : [];
   } catch (err) {
+    console.error(err);
   }
 }
 
@@ -1124,7 +1158,6 @@ async function agregarNuevoProducto() {
 
 
 async function guardarTodosProductos() {
-  // 🔒 Evita ejecuciones simultáneas del guardado masivo
   if (window._guardandoTodos) {
     alert("⏳ Ya hay un guardado masivo en curso. Espera un momento.");
     return;
@@ -1148,21 +1181,37 @@ async function guardarTodosProductos() {
     return;
   }
 
-  const productosAGuardar = [];
+  // 🔍 Recopilar solo productos con cambios reales
+  const productosModificados = [];
   filas.forEach(fila => {
     const idBase = fila.dataset.idBase;
     if (!idBase) return;
-    const producto = obtenerProductoDesdeFila(fila, idBase);
-    productosAGuardar.push(producto);
+    
+    const original = window.todosLosProductos.find(p => p.id_base === idBase);
+    if (!original) return;
+    
+    const actual = obtenerProductoDesdeFila(fila, idBase);
+    if (productoHaCambiado(original, actual)) {
+      productosModificados.push(actual);
+    }
   });
+
+  if (productosModificados.length === 0) {
+    alert("✅ No hay cambios para guardar.");
+    if (btnGuardarTodos) {
+      btnGuardarTodos.disabled = false;
+      btnGuardarTodos.textContent = textoOriginalBtn || '💾 Guardar todos';
+    }
+    window._guardandoTodos = false;
+    return;
+  }
 
   let guardados = 0;
   const errores = [];
 
-  for (const producto of productosAGuardar) {
+  for (const producto of productosModificados) {
     try {
       const formDiv = { dataset: { idBase: producto.id_base } };
-      // Usamos skipReload = true para no recargar la tabla hasta el final
       const resultado = await guardarProducto(producto, formDiv, true);
       if (resultado) guardados++;
     } catch (error) {
@@ -1170,23 +1219,37 @@ async function guardarTodosProductos() {
     }
   }
 
-  // Recargar una sola vez al terminar todos
   await recargarProductos();
   renderTablaProductos();
 
-  const mensaje = `Guardados ${guardados} de ${productosAGuardar.length} productos.`;
+  const mensaje = `Guardados ${guardados} de ${productosModificados.length} productos modificados.`;
   if (errores.length) {
     alert(`${mensaje}\nErrores: ${errores.join(', ')}`);
   } else {
     alert(mensaje);
   }
 
-  // Restaurar botón
   if (btnGuardarTodos) {
     btnGuardarTodos.disabled = false;
     btnGuardarTodos.textContent = textoOriginalBtn || '💾 Guardar todos';
   }
   window._guardandoTodos = false;
+}
+
+// Función auxiliar para detectar cambios
+function productoHaCambiado(original, actual) {
+  const ignorar = new Set(['timestamp', 'fecha_actualizacion', 'actualizado', 'email_vendedor']);
+  const claves = new Set([...Object.keys(original), ...Object.keys(actual)]);
+  for (let clave of claves) {
+    if (ignorar.has(clave)) continue;
+    const valOrig = original[clave];
+    const valAct = actual[clave];
+    // Comparación profunda simple (arrays/objetos se comparan serializados)
+    if (JSON.stringify(valOrig) !== JSON.stringify(valAct)) {
+      return true;
+    }
+  }
+  return false;
 }
 
 
@@ -1252,6 +1315,13 @@ if (window.modoAdmin) {
       const primerGrupo = document.querySelector('.grupo-btn');
       if (primerGrupo) {
         primerGrupo.click();
+        // Esperar a que se renderice la barra de subgrupos
+        setTimeout(() => {
+          const primerSubgrupo = document.querySelector('#adminSubgruposBar .subgrupo-btn');
+          if (primerSubgrupo) {
+            primerSubgrupo.click();
+          }
+        }, 100);
       }
     }, 50);
   });
