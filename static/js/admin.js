@@ -971,27 +971,20 @@ function filtrarProductos(grupo, subgrupo = null) {
     }
   });
 
-  // Mostrar u ocultar barra de subgrupos
+  // ✅ Siempre mostrar la barra de subgrupos (con el botón "+ Subgrupo")
   if (grupo && grupo !== 'todos') {
-    const subgrupos = [...new Set(
-      window.todosLosProductos.filter(p => p.grupo === grupo)
-                              .map(p => p.subgrupo)
-                              .filter(Boolean)
-    )];
-    if (subgrupos.length > 0) {
-      mostrarSubgruposHorizontal(grupo);
-    } else {
-      ocultarSubgrupos();
-    }
+    mostrarSubgruposHorizontal(grupo);
   } else {
     ocultarSubgrupos();
   }
 
   // Actualizar clases activas en botones de subgrupo
   const subgrupoBtns = document.querySelectorAll('.subgrupo-btn');
+  let subgrupoActivo = false;
   subgrupoBtns.forEach(btn => {
     if (btn.dataset.grupo === grupo && btn.dataset.subgrupo === subgrupo) {
       btn.classList.add('active');
+      subgrupoActivo = true;
     } else {
       btn.classList.remove('active');
     }
@@ -999,20 +992,17 @@ function filtrarProductos(grupo, subgrupo = null) {
 
   window.currentAdminSubgrupo = subgrupo;
 
-  // ⭐ NUEVO: Si no se especificó un subgrupo (ej. al cambiar de grupo),
-  // seleccionar automáticamente el primer subgrupo disponible después de que se renderice.
-  if (!subgrupo) {
+  // ⭐ Si no se especificó un subgrupo (o no hay activo), intentar seleccionar el primer subgrupo disponible
+  if (!subgrupo && !subgrupoActivo) {
     setTimeout(() => {
-      const subgrupoActivo = document.querySelector('.subgrupo-btn.active');
-      if (!subgrupoActivo) {
-        const primerSub = document.querySelector('#adminSubgruposBar .subgrupo-btn');
-        if (primerSub) {
-          primerSub.click();
-        }
+      const primerSub = document.querySelector('#adminSubgruposBar .subgrupo-btn');
+      if (primerSub) {
+        primerSub.click();
       }
     }, 50);
   }
 }
+
 
 function obtenerProductoDesdeFila(fila, idBase) {
   const original = window.todosLosProductos.find(p => p.id_base === idBase) || {};
