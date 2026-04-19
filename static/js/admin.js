@@ -990,6 +990,21 @@ function filtrarProductos(grupo, subgrupo = null) {
 
   window.currentAdminSubgrupo = subgrupo;
 
+  // ⭐ Si no se especificó un subgrupo y no hay ninguno activo,
+  // seleccionar automáticamente el primer subgrupo disponible (si existe)
+  if (!subgrupo) {
+    setTimeout(() => {
+      const subgrupoActivo = document.querySelector('.subgrupo-btn.active');
+      if (!subgrupoActivo) {
+        const primerSub = document.querySelector('#adminSubgruposBar .subgrupo-btn');
+        if (primerSub) {
+          primerSub.click();
+        }
+      }
+    }, 50);
+  }
+} // <-- CIERRE CORRECTO
+
 
 function obtenerProductoDesdeFila(fila, idBase) {
   const original = window.todosLosProductos.find(p => p.id_base === idBase) || {};
