@@ -258,12 +258,13 @@
       codigo_postal: codigoPostal
     } : {};
 
-    // Items para verificar stock
+    // Items para verificar stock Y PRECIOS (se añade 'precio')
     const itemsVerificar = carrito.filter(item => item.id_base).map(item => ({
       id_base: item.id_base,
       talle: item.talle || 'unico',
       color: item.color || 'unico',
-      cantidad: item.cantidad
+      cantidad: item.cantidad,
+      precio: item.precio      // ⭐ Se envía el precio para validar
     }));
 
     if (itemsVerificar.length === 0) {
@@ -280,7 +281,19 @@
     const btnPagarFinal = document.getElementById('btnPagarFinal');
     if (btnPagarFinal) {
       btnPagarFinal.disabled = true;
-      btnPagarFinal.textContent = 'Verificando stock...';
+      btnPagarFinal.textContent = 'Verificando stock y precios...';
+    }
+
+    // ⭐ Determinar el email del vendedor: priorizar TARGET_EMAIL (master admin) sobre cliente.email
+    const emailVendedor = window.TARGET_EMAIL || window.cliente?.email;
+    if (!emailVendedor) {
+      alert("❌ No se pudo identificar al vendedor");
+      if (btnPagarFinal) {
+        btnPagarFinal.disabled = false;
+        btnPagarFinal.textContent = 'Pagar con Mercado Pago';
+      }
+      pagando = false;
+      return;
     }
 
     try {
@@ -288,28 +301,47 @@
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          email_vendedor: window.cliente.email,
+          email_vendedor: emailVendedor,
           carrito: itemsVerificar 
         })
       });
 
       if (!verifyResp.ok) {
         const errorText = await verifyResp.text();
-        throw new Error(`Error al verificar stock: ${verifyResp.status} ${errorText}`);
+        throw new Error(`Error al verificar: ${verifyResp.status} ${errorText}`);
       }
 
       const verifyData = await verifyResp.json();
 
       if (!verifyData.ok) {
-        let mensaje = "❌ No hay suficiente stock para:\n";
-        (verifyData.faltantes || []).forEach(item => {
-          mensaje += `- ${item.nombre} (talle: ${item.talle}, color: ${item.color || 'unico'}): disponible ${item.disponible}, solicitado ${item.solicitado}\n`;
-        });
-        alert(mensaje);
+        // ⭐ NUEVO: Manejo de precios desactualizados
+        if (verifyData.precios_desactualizados) {
+          let mensaje = "❌ Los siguientes productos cambiaron de precio:\n";
+          verifyData.precios_desactualizados.forEach(item => {
+            mensaje += `- ${item.nombre}: era $${item.precio_cliente}, ahora $${item.precio_actual}\n`;
+          });
+          mensaje += "\nPor favor, actualizá la página para ver los nuevos precios.";
+          alert(mensaje);
+          
+          // Intentar recargar productos automáticamente
+          if (typeof recargarProductos === 'function') {
+            await recargarProductos();
+          }
+        }
+        // Manejo de stock insuficiente (existente)
+        else if (verifyData.faltantes) {
+          let mensaje = "❌ No hay suficiente stock para:\n";
+          verifyData.faltantes.forEach(item => {
+            mensaje += `- ${item.nombre} (talle: ${item.talle}, color: ${item.color || 'unico'}): disponible ${item.disponible}, solicitado ${item.solicitado}\n`;
+          });
+          alert(mensaje);
 
-        // Actualizar la UI con el stock real
-        if (verifyData.stock_actualizado) {
-          actualizarStockUI(verifyData.stock_actualizado);
+          // Actualizar la UI con el stock real
+          if (verifyData.stock_actualizado) {
+            actualizarStockUI(verifyData.stock_actualizado);
+          }
+        } else {
+          alert("❌ Error en la verificación: " + (verifyData.error || "Desconocido"));
         }
 
         if (btnPagarFinal) {
@@ -368,10 +400,10 @@
       });
 
       const totalFinal = subtotalProductos + (window.costoEnvio || costoEnvio);
-      const orden_id = 'ORD_' + Date.now() + '_' + Math.random().toString(36).substring(2, 11); // substr → substring
+      const orden_id = 'ORD_' + Date.now() + '_' + Math.random().toString(36).substring(2, 11);
 
       const payload = {
-        email_vendedor: window.cliente.email,
+        email_vendedor: emailVendedor,
         carrito: itemsCarrito,
         items_mp: itemsMP,
         total: totalFinal,
