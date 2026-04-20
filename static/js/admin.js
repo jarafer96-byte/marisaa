@@ -310,7 +310,6 @@ async function subirImagen(blob) {
 
 
 function duplicarProductoDesdeCard(id_base) {
-  // 🔒 Evita duplicaciones múltiples simultáneas
   if (window._duplicandoProducto) {
     console.warn("Ya hay una operación de duplicación en curso");
     return;
@@ -325,26 +324,42 @@ function duplicarProductoDesdeCard(id_base) {
   }
 
   try {
-    const original = window.todosLosProductos?.find(p => p.id_base === id_base);
-    if (!original) {
-      alert("❌ Producto no encontrado");
-      return;
+    // 1. Obtener la fila actual del DOM
+    const fila = document.querySelector(`tr[data-id-base="${id_base}"]`);
+    if (!fila) throw new Error("No se encontró la fila");
+
+    // 2. Leer el producto actual desde el DOM (con todas las variantes no guardadas)
+    const productoActualizado = obtenerProductoDesdeFila(fila, id_base);
+    if (!productoActualizado) throw new Error("No se pudo leer el producto");
+
+    // 3. ACTUALIZAR el objeto original en window.todosLosProductos con los valores del DOM
+    const indexOriginal = window.todosLosProductos.findIndex(p => p.id_base === id_base);
+    if (indexOriginal !== -1) {
+      window.todosLosProductos[indexOriginal] = productoActualizado;
+      console.log("Original actualizado:", productoActualizado);
+    } else {
+      console.warn("No se encontró el original en el array");
     }
 
-    const copia = JSON.parse(JSON.stringify(original));
+    // 4. Crear una copia profunda del producto actualizado
+    const copia = JSON.parse(JSON.stringify(productoActualizado));
 
+    // 5. Generar nuevo id_base temporal
     delete copia.id_base;
-    // Reemplazar substr (obsoleto) por substring
     copia.id_base = 'nuevo_' + Date.now() + '_' + Math.random().toString(36).substring(2, 11);
 
+    // 6. Limpiar imágenes (opcional)
     copia.imagen_url = '';
     copia.fotos_adicionales = [];
 
+    // 7. Agregar la copia al array global
     window.todosLosProductos.push(copia);
+    console.log("Copia agregada:", copia);
 
+    // 8. Refrescar la vista manteniendo el filtro actual
     const grupoActivo = document.querySelector('.grupo-btn.active');
     const grupo = grupoActivo ? grupoActivo.dataset.grupo : null;
-    const subgrupoActivo = document.querySelector('.subgrupo-btn.active');
+    const subgrupoActivo = document.querySelector('#adminSubgruposBar .subgrupo-btn.active');
     const subgrupo = subgrupoActivo ? subgrupoActivo.dataset.subgrupo : null;
 
     if (grupo) {
@@ -353,6 +368,7 @@ function duplicarProductoDesdeCard(id_base) {
       renderTablaProductos();
     }
 
+    // 9. Resaltar la nueva fila
     setTimeout(() => {
       const nuevaFila = document.querySelector(`tr[data-id-base="${copia.id_base}"]`);
       if (nuevaFila) {
@@ -361,6 +377,13 @@ function duplicarProductoDesdeCard(id_base) {
         setTimeout(() => nuevaFila.classList.remove('table-active'), 2000);
       }
     }, 100);
+
+    if (typeof mostrarToast === 'function') {
+      mostrarToast('✅ Producto duplicado (pendiente de guardar)');
+    }
+  } catch (err) {
+    console.error(err);
+    alert('Error al duplicar: ' + err.message);
   } finally {
     window._duplicandoProducto = false;
     if (boton) {
