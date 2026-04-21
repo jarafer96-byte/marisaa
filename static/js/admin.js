@@ -1,14 +1,12 @@
 window.todosLosProductos = window.todosLosProductos || [];
 
 async function guardarProducto(producto, formDiv, skipReload = false) {
-  // 🔒 Evitar múltiples guardados simultáneos
   if (window._guardandoProducto) {
     console.warn("Ya hay una operación de guardado en curso");
     return false;
   }
   window._guardandoProducto = true;
 
-  // Deshabilitar el botón de guardar si existe
   let boton = null;
   let textoOriginal = '';
   if (formDiv && typeof formDiv.querySelector === 'function') {
@@ -21,7 +19,6 @@ async function guardarProducto(producto, formDiv, skipReload = false) {
   }
 
   try {
-    // ⭐ Priorizar TARGET_EMAIL (master admin creando para otro) sobre cliente.email
     const email = window.TARGET_EMAIL || window.cliente?.email;
     if (!email) {
       alert("❌ No hay email de admin, no se puede guardar");
@@ -60,8 +57,35 @@ async function guardarProducto(producto, formDiv, skipReload = false) {
         mostrarToast(`✅ ${producto.nombre} guardado`);
       }
       if (!skipReload) {
+        // Recargar el array global desde el servidor (sin refrescar la tabla completa)
         await recargarProductos();
-        renderTablaProductos();
+        
+        // Obtener el nuevo id_base devuelto por el backend
+        const nuevoIdBase = data.producto_id || data.id_base || (esEdicion ? idBase : null);
+        let productoActualizado = null;
+        if (nuevoIdBase) {
+          productoActualizado = window.todosLosProductos.find(p => p.id_base === nuevoIdBase);
+        }
+        
+        if (productoActualizado) {
+          // Buscar la fila actual (podría tener el id_base antiguo si era nuevo)
+          const idBaseAntiguo = esEdicion ? idBase : (formDiv?.dataset?.idBase || idBase);
+          const filaExistente = document.querySelector(`tr[data-id-base="${idBaseAntiguo}"]`);
+          if (filaExistente) {
+            // Actualizar la fila existente con los datos frescos
+            actualizarFilaProducto(productoActualizado.id_base, productoActualizado);
+          } else {
+            // Si no existe (caso raro), agregar nueva fila
+            agregarFilaProducto(productoActualizado);
+          }
+          // Actualizar el dataset del formDiv para futuras ediciones (importante si cambió el id_base)
+          if (formDiv && !esEdicion && nuevoIdBase) {
+            formDiv.dataset.idBase = nuevoIdBase;
+          }
+        } else {
+          // Fallback: recargar toda la tabla (por si algo salió mal)
+          renderTablaProductos();
+        }
       }
       return true;
     } else {
@@ -71,7 +95,6 @@ async function guardarProducto(producto, formDiv, skipReload = false) {
     alert("❌ Error: " + err.message);
     return false;
   } finally {
-    // Restaurar estado y habilitar botón
     window._guardandoProducto = false;
     if (boton) {
       boton.disabled = false;
@@ -79,7 +102,6 @@ async function guardarProducto(producto, formDiv, skipReload = false) {
     }
   }
 }
-
 function abrirConfigCorreoArgentino() {
   const modal = document.getElementById('modalConfigCA');
   if (modal) {
@@ -189,17 +211,43 @@ function cerrarModalConfigCA() {
     });
   }
 
+// Reemplaza el contenido de una fila existente con los datos actualizados del producto
+function actualizarFilaProducto(idBase, productoActualizado) {
+  const fila = document.querySelector(`tr[data-id-base="${idBase}"]`);
+  if (!fila) return false;
+  
+  // Generar el HTML de la fila usando renderFilasTabla (pero solo para un producto)
+  const htmlFila = renderFilasTabla([productoActualizado]);
+  const nuevaFila = document.createElement('tr');
+  nuevaFila.innerHTML = htmlFila;
+  nuevaFila.setAttribute('data-id-base', idBase);
+  
+  // Reemplazar la fila existente
+  fila.parentNode.replaceChild(nuevaFila, fila);
+  return true;
+}
 
+// Agrega una nueva fila al final del tbody
+function agregarFilaProducto(producto) {
+  const tbody = document.getElementById('tabla-productos-body');
+  if (!tbody) return;
+  const htmlFila = renderFilasTabla([producto]);
+  tbody.insertAdjacentHTML('beforeend', htmlFila);
+}
+
+// Elimina una fila del DOM
+function eliminarFilaProducto(idBase) {
+  const fila = document.querySelector(`tr[data-id-base="${idBase}"]`);
+  if (fila) fila.remove();
+}
 
 async function eliminarProducto(id_base) {
-  // 🔒 Evita ejecuciones simultáneas
   if (window._eliminandoProducto) {
     console.warn("Ya hay una operación de eliminación en curso");
     return;
   }
   window._eliminandoProducto = true;
 
-  // Buscar el botón eliminar asociado (si existe)
   const boton = document.querySelector(`.eliminar-producto[data-id="${id_base}"]`);
   const textoOriginal = boton?.innerHTML;
   if (boton) {
@@ -213,24 +261,14 @@ async function eliminarProducto(id_base) {
       const index = window.todosLosProductos.findIndex(p => p.id_base === id_base);
       if (index !== -1) {
         window.todosLosProductos.splice(index, 1);
-        const grupoActivo = document.querySelector('.grupo-btn.active');
-        const grupo = grupoActivo ? grupoActivo.dataset.grupo : null;
-        const subgrupoActivo = document.querySelector('.subgrupo-btn.active');
-        const subgrupo = subgrupoActivo ? subgrupoActivo.dataset.subgrupo : null;
-        if (grupo) {
-          filtrarProductos(grupo, subgrupo);
-        } else {
-          renderTablaProductos();
-        }
+        eliminarFilaProducto(id_base); // ✅ eliminar fila del DOM directamente
         if (typeof mostrarToast === 'function') mostrarToast('✅ Producto eliminado (sin guardar)');
       }
       return;
     }
 
-    // ⭐ Priorizar TARGET_EMAIL (master admin) sobre cliente.email
-    const email = window.TARGET_EMAIL || window.cliente?.email;
-
     // Caso: producto real (ya guardado en BD)
+    const email = window.TARGET_EMAIL || window.cliente?.email;
     const resp = await fetch("/eliminar-producto", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -238,8 +276,15 @@ async function eliminarProducto(id_base) {
     });
     const data = await resp.json();
     if (data.status === "ok") {
-      await recargarProductos();
-      renderTablaProductos();
+      // Eliminar del array global
+      const index = window.todosLosProductos.findIndex(p => p.id_base === id_base);
+      if (index !== -1) window.todosLosProductos.splice(index, 1);
+      // Eliminar fila del DOM
+      eliminarFilaProducto(id_base);
+      // Si estaba marcado como pendiente, limpiar la marca
+      if (window._productosConCambiosPendientes) {
+        window._productosConCambiosPendientes.delete(id_base);
+      }
       if (typeof mostrarToast === 'function') mostrarToast('✅ Producto eliminado');
     } else {
       alert("Error al eliminar producto: " + (data.error || data.message || "Error desconocido"));
@@ -254,7 +299,6 @@ async function eliminarProducto(id_base) {
     }
   }
 }
-
 
 async function optimizarImagen(file) {
   const imgUrl = URL.createObjectURL(file);
@@ -324,51 +368,35 @@ function duplicarProductoDesdeCard(id_base) {
   }
 
   try {
-    // 1. Obtener la fila actual del DOM
     const fila = document.querySelector(`tr[data-id-base="${id_base}"]`);
     if (!fila) throw new Error("No se encontró la fila");
 
-    // 2. Leer el producto actual desde el DOM (con todas las variantes no guardadas)
+    // Leer el estado actual completo del DOM
     const productoActualizado = obtenerProductoDesdeFila(fila, id_base);
     if (!productoActualizado) throw new Error("No se pudo leer el producto");
 
-    // 3. ACTUALIZAR el objeto original en window.todosLosProductos con los valores del DOM
+    // ACTUALIZAR el original en el array (para que la tabla lo muestre con las variantes nuevas)
     const indexOriginal = window.todosLosProductos.findIndex(p => p.id_base === id_base);
     if (indexOriginal !== -1) {
       window.todosLosProductos[indexOriginal] = productoActualizado;
-      console.log("Original actualizado:", productoActualizado);
-    } else {
-      console.warn("No se encontró el original en el array");
+      // Marcar este producto como "con cambios pendientes"
+      if (!window._productosConCambiosPendientes) window._productosConCambiosPendientes = new Set();
+      window._productosConCambiosPendientes.add(id_base);
     }
 
-    // 4. Crear una copia profunda del producto actualizado
+    // Crear copia
     const copia = JSON.parse(JSON.stringify(productoActualizado));
-
-    // 5. Generar nuevo id_base temporal
     delete copia.id_base;
     copia.id_base = 'nuevo_' + Date.now() + '_' + Math.random().toString(36).substring(2, 11);
-
-    // 6. Limpiar imágenes (opcional)
     copia.imagen_url = '';
     copia.fotos_adicionales = [];
 
-    // 7. Agregar la copia al array global
     window.todosLosProductos.push(copia);
-    console.log("Copia agregada:", copia);
 
-    // 8. Refrescar la vista manteniendo el filtro actual
-    const grupoActivo = document.querySelector('.grupo-btn.active');
-    const grupo = grupoActivo ? grupoActivo.dataset.grupo : null;
-    const subgrupoActivo = document.querySelector('#adminSubgruposBar .subgrupo-btn.active');
-    const subgrupo = subgrupoActivo ? subgrupoActivo.dataset.subgrupo : null;
+    // ✅ Agregar la nueva fila al DOM sin recargar toda la tabla
+    agregarFilaProducto(copia);
 
-    if (grupo) {
-      filtrarProductos(grupo, subgrupo);
-    } else {
-      renderTablaProductos();
-    }
-
-    // 9. Resaltar la nueva fila
+    // Resaltar la nueva fila
     setTimeout(() => {
       const nuevaFila = document.querySelector(`tr[data-id-base="${copia.id_base}"]`);
       if (nuevaFila) {
@@ -392,7 +420,6 @@ function duplicarProductoDesdeCard(id_base) {
     }
   }
 }
-
 
 async function abrirConfigMercadoPago() {
   const urlRetorno = window.location.href;
@@ -640,7 +667,7 @@ function parsearTallesStock(cadena) {
 function agregarFilaColor(btn) {
   const contenedor = btn.closest('.colores-stock-container');
   const nuevaFila = document.createElement('div');
-  nuevaFila.className = 'fila-color d-flex align-items-center mb-1'; // la clase .fila-color ya tiene gap:5px en CSS
+  nuevaFila.className = 'fila-color d-flex align-items-center mb-1';
   nuevaFila.innerHTML = `
     <input type="text" class="form-control form-control-sm color-input" placeholder="Color">
     <input type="checkbox" class="talle-toggle">
@@ -690,8 +717,14 @@ function agregarFilaColor(btn) {
       input.value = stock;
     }
   });
-}
 
+  // ✅ Marcar el producto como "con cambios pendientes" para que se guarde aunque el array esté sincronizado
+  const idBase = contenedor.getAttribute('data-id');
+  if (idBase) {
+    if (!window._productosConCambiosPendientes) window._productosConCambiosPendientes = new Set();
+    window._productosConCambiosPendientes.add(idBase);
+  }
+}
 
 function renderTablaProductos() {
   const container = document.getElementById('tableView');
@@ -1194,7 +1227,7 @@ async function guardarTodosProductos() {
     return;
   }
 
-  // 🔍 Recopilar solo productos con cambios reales
+  // 🔍 Recopilar productos con cambios reales o marcados como pendientes
   const productosModificados = [];
   filas.forEach(fila => {
     const idBase = fila.dataset.idBase;
@@ -1204,7 +1237,13 @@ async function guardarTodosProductos() {
     if (!original) return;
     
     const actual = obtenerProductoDesdeFila(fila, idBase);
-    if (productoHaCambiado(original, actual)) {
+    // Considerar cambios si:
+    // 1. El producto ha cambiado (comparación normal)
+    // 2. O está marcado como pendiente (por duplicación o agregado de filas de color)
+    const tieneCambios = productoHaCambiado(original, actual) ||
+                         (window._productosConCambiosPendientes && window._productosConCambiosPendientes.has(idBase));
+    
+    if (tieneCambios) {
       productosModificados.push(actual);
     }
   });
@@ -1235,6 +1274,11 @@ async function guardarTodosProductos() {
   await recargarProductos();
   renderTablaProductos();
 
+  // ✅ Limpiar la marca de productos pendientes después de guardar
+  if (window._productosConCambiosPendientes) {
+    window._productosConCambiosPendientes.clear();
+  }
+
   const mensaje = `Guardados ${guardados} de ${productosModificados.length} productos modificados.`;
   if (errores.length) {
     alert(`${mensaje}\nErrores: ${errores.join(', ')}`);
@@ -1248,7 +1292,6 @@ async function guardarTodosProductos() {
   }
   window._guardandoTodos = false;
 }
-
 // Función auxiliar para detectar cambios
 function productoHaCambiado(original, actual) {
   const ignorar = new Set(['timestamp', 'fecha_actualizacion', 'actualizado', 'email_vendedor']);
