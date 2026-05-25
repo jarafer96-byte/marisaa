@@ -184,9 +184,9 @@ fetch(urlProductos)
     if (!r.ok) throw new Error("HTTP " + r.status);
     return r.json();
   })
-  .then(lista => {
-    const lista = data.productos || []; 
-    const productosOrdenados = lista; 
+  .then(data => {
+    const productos = data.productos || [];   // extraemos el array del objeto
+    const productosOrdenados = [...productos]; // copia para no mutar (opcional)
   
     productosOrdenados.sort((a, b) => {
       const stockA = (a.stock_por_talle && Object.values(a.stock_por_talle).some(v => v > 0)) || 
