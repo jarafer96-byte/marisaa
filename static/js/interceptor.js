@@ -18,7 +18,6 @@
   window.VENDOR_EMAIL = window.cliente.email;
   window.carrito = [];
 
-  // --- Token JWT (admin) ---
   const adminToken = sessionStorage.getItem('adminToken');
   const urlToken = new URLSearchParams(window.location.search).get('token');
   
@@ -48,19 +47,15 @@
     const isRelative = !url.startsWith('http://') && !url.startsWith('https://');
     
     if (isRelative) {
-      // Recursos estáticos no se proxean
       const isStatic = url.match(/\.(css|js|png|jpg|jpeg|gif|svg|webp|ico|woff2?|ttf|eot)$/i) ||
                        url.startsWith('/static/') ||
                        url.startsWith('/img/');
       
       if (window.modoAdmin) {
-        // Admin: todas las rutas /api/* van al backend
         if (!isStatic && url.startsWith('/api/')) {
           finalUrl = API_BASE + url;
         }
       } else {
-        // Público: solo las rutas explícitas en backendRoutes van al backend
-        // (excluyendo /api/productos para que lo maneje el Worker)
         const shouldProxy = backendRoutes.some(route =>
           url === route || (route.endsWith('/') && url.startsWith(route))
         );
@@ -70,7 +65,6 @@
       }
     }
 
-    // Cabeceras fijas
     if (window.VENDOR_EMAIL) {
       options.headers['X-Vendor-Email'] = window.VENDOR_EMAIL;
     }
