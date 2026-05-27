@@ -1144,14 +1144,27 @@ async function recargarProductos() {
   try {
     const email = window.cliente?.email;
     if (!email) return;
-    const resp = await fetch(`/api/productos?_=${Date.now()}`);
-    const data = await resp.json();
-    window.todosLosProductos = Array.isArray(data) ? data : [];
+    let todos = [];
+    let lastId = null;
+    let hayMas = true;
+    while (hayMas) {
+      let url = `/api/productos?limit=50`; // Puedes aumentar a 100 si quieres menos iteraciones
+      if (lastId) url += `&last_id=${encodeURIComponent(lastId)}`;
+      const resp = await fetch(url);
+      if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+      const data = await resp.json();
+      const productos = data.productos || [];
+      todos = todos.concat(productos);
+      lastId = data.next_last_id;
+      hayMas = !!lastId;
+    }
+    window.todosLosProductos = todos;
+    console.log(`✅ Cargados ${todos.length} productos para ${email}`);
   } catch (err) {
-    console.error(err);
+    console.error('Error en recargarProductos:', err);
+    window.todosLosProductos = [];
   }
 }
-
 
 function getCurrentSelectedGroup() {
   const activeGroupBtn = document.querySelector('.grupo-btn.active');
