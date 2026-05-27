@@ -1,7 +1,7 @@
 (function() {
   const API_BASE = 'https://mpagina.onrender.com';
   const backendRoutes = [
-    '/api/', '/pagar', '/verificar-stock', '/login-admin',
+    '/pagar', '/verificar-stock', '/login-admin',
     '/guardar-producto', '/eliminar-producto', '/subir-foto',
     '/conectar_mp', '/actualizar-stock-talle', '/guardar-talles-stock',
     '/callback_mp',
@@ -10,7 +10,6 @@
     '/ca/rotulos', '/ca/historial', '/ca/sucursales'
   ];
 
-  // Estas variables deben definirse antes de que se use el interceptor
   window.cliente = {
     email: "trigomarisaadriana@gmail.com",
     whatsapp: "https://wa.me/5492901602482",
@@ -58,7 +57,7 @@
           finalUrl = API_BASE + url;
         }
       } else {
-        // Público: solo rutas en backendRoutes
+        // Público: solo rutas de backendRoutes (excluye /api/productos)
         const shouldProxy = backendRoutes.some(route =>
           url === route || (route.endsWith('/') && url.startsWith(route))
         );
