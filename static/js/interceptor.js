@@ -39,7 +39,7 @@
     window.adminToken = null;
   }
 
-  // --- Interceptor fetch modificado (sin CSRF) ---
+  // --- Interceptor fetch ---
   const originalFetch = window.fetch;
   window.fetch = function(url, options = {}) {
     options.headers = options.headers || {};
@@ -48,14 +48,23 @@
     const isRelative = !url.startsWith('http://') && !url.startsWith('https://');
     
     if (isRelative) {
-      const isProductosAPI = url === '/api/productos' || url.startsWith('/api/productos?');
-      if (isProductosAPI) {
-        finalUrl = url;
+      // Recursos estáticos no se proxean
+      const isStatic = url.match(/\.(css|js|png|jpg|jpeg|gif|svg|webp|ico|woff2?|ttf|eot)$/i) ||
+                       url.startsWith('/static/') ||
+                       url.startsWith('/img/');
+      
+      if (window.modoAdmin) {
+        // Admin: todas las rutas /api/* van al backend
+        if (!isStatic && url.startsWith('/api/')) {
+          finalUrl = API_BASE + url;
+        }
       } else {
+        // Público: solo las rutas explícitas en backendRoutes van al backend
+        // (excluyendo /api/productos para que lo maneje el Worker)
         const shouldProxy = backendRoutes.some(route =>
           url === route || (route.endsWith('/') && url.startsWith(route))
         );
-        if (shouldProxy) {
+        if (!isStatic && shouldProxy) {
           finalUrl = API_BASE + url;
         }
       }
