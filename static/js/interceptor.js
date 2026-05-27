@@ -1,10 +1,10 @@
 (function() {
   const API_BASE = 'https://mpagina.onrender.com';
   const backendRoutes = [
-    '/pagar', '/verificar-stock', '/login-admin',
+    '/api/', '/pagar', '/verificar-stock', '/login-admin',
     '/guardar-producto', '/eliminar-producto', '/subir-foto',
     '/conectar_mp', '/actualizar-stock-talle', '/guardar-talles-stock',
-    '/callback_mp',
+    '/callback_mp', '/api/csrf-token',
     '/ca/cotizar', '/ca/guardar-remitente', '/ca/guardar-credenciales',
     '/ca/validar', '/ca/crear-orden', '/ca/cancelar-orden',
     '/ca/rotulos', '/ca/historial', '/ca/sucursales'
@@ -39,50 +39,77 @@
     window.adminToken = null;
   }
 
-  // --- Interceptor fetch ---
+  // --- CSRF (opcional, solo si el backend lo exige) ---
+  async function loadCSRFToken() {
+    if (!window.modoAdmin) {
+      window.CSRF_TOKEN = null;
+      return null;
+    }
+    try {
+      const res = await fetch(API_BASE + '/api/csrf-token');
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const data = await res.json();
+      window.CSRF_TOKEN = data.csrf_token;
+      return window.CSRF_TOKEN;
+    } catch(e) {
+      console.error('Error al obtener CSRF token', e);
+      window.CSRF_TOKEN = null;
+      return null;
+    }
+  }
+
+  // --- Interceptor fetch modificado ---
   const originalFetch = window.fetch;
   window.fetch = function(url, options = {}) {
     options.headers = options.headers || {};
+    
     let finalUrl = url;
     const isRelative = !url.startsWith('http://') && !url.startsWith('https://');
     
     if (isRelative) {
-      const isStatic = url.match(/\.(css|js|png|jpg|jpeg|gif|svg|webp|ico|woff2?|ttf|eot)$/i) ||
-                       url.startsWith('/static/') ||
-                       url.startsWith('/img/');
-      
-      if (window.modoAdmin) {
-        // Admin: todas las rutas /api/ van al backend
-        if (!isStatic && url.startsWith('/api/')) {
-          finalUrl = API_BASE + url;
+        const isProductosAPI = url === '/api/productos' || url.startsWith('/api/productos?');
+    
+        if (isProductosAPI) {
+            finalUrl = url;
+        } else {
+
+            const shouldProxy = backendRoutes.some(route =>
+                url === route || (route.endsWith('/') && url.startsWith(route))
+            );
+            if (shouldProxy) {
+                finalUrl = API_BASE + url;
+            }
         }
-      } else {
-        // Público: solo rutas de backendRoutes (excluye /api/productos)
-        const shouldProxy = backendRoutes.some(route =>
-          url === route || (route.endsWith('/') && url.startsWith(route))
-        );
-        if (!isStatic && shouldProxy) {
-          finalUrl = API_BASE + url;
-        }
-      }
     }
 
+    // Cabeceras fijas
     if (window.VENDOR_EMAIL) {
       options.headers['X-Vendor-Email'] = window.VENDOR_EMAIL;
     }
+    
+    // Token JWT si estamos en modo admin
     if (window.modoAdmin && window.adminToken) {
       options.headers['Authorization'] = `Bearer ${window.adminToken}`;
     }
+    
+    // CSRF (si existe)
+    if (window.modoAdmin && window.CSRF_TOKEN) {
+      options.headers['X-CSRF-Token'] = window.CSRF_TOKEN;
+    }
+    
+    // No enviamos cookies porque usamos JWT
     options.credentials = 'omit';
+    
     return originalFetch(finalUrl, options);
   };
 
-  // Carga de admin.js si es necesario
   if (window.modoAdmin && !window.adminScriptLoaded) {
     window.adminScriptLoaded = true;
-    const script = document.createElement('script');
-    script.src = 'static/js/admin.js';
-    script.defer = true;
-    document.head.appendChild(script);
+    loadCSRFToken().then(() => {
+        const script = document.createElement('script');
+        script.src = 'static/js/admin.js';
+        script.defer = true;
+        document.head.appendChild(script);
+    });
   }
 })();
