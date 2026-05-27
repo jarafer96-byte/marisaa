@@ -4,7 +4,7 @@
     '/api/', '/pagar', '/verificar-stock', '/login-admin',
     '/guardar-producto', '/eliminar-producto', '/subir-foto',
     '/conectar_mp', '/actualizar-stock-talle', '/guardar-talles-stock',
-    '/callback_mp', '/api/csrf-token',
+    '/callback_mp',
     '/ca/cotizar', '/ca/guardar-remitente', '/ca/guardar-credenciales',
     '/ca/validar', '/ca/crear-orden', '/ca/cancelar-orden',
     '/ca/rotulos', '/ca/historial', '/ca/sucursales'
@@ -39,26 +39,7 @@
     window.adminToken = null;
   }
 
-  // --- CSRF (opcional, solo si el backend lo exige) ---
-  async function loadCSRFToken() {
-    if (!window.modoAdmin) {
-      window.CSRF_TOKEN = null;
-      return null;
-    }
-    try {
-      const res = await fetch(API_BASE + '/api/csrf-token');
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const data = await res.json();
-      window.CSRF_TOKEN = data.csrf_token;
-      return window.CSRF_TOKEN;
-    } catch(e) {
-      console.error('Error al obtener CSRF token', e);
-      window.CSRF_TOKEN = null;
-      return null;
-    }
-  }
-
-  // --- Interceptor fetch modificado ---
+  // --- Interceptor fetch modificado (sin CSRF) ---
   const originalFetch = window.fetch;
   window.fetch = function(url, options = {}) {
     options.headers = options.headers || {};
@@ -67,19 +48,17 @@
     const isRelative = !url.startsWith('http://') && !url.startsWith('https://');
     
     if (isRelative) {
-        const isProductosAPI = url === '/api/productos' || url.startsWith('/api/productos?');
-    
-        if (isProductosAPI) {
-            finalUrl = url;
-        } else {
-
-            const shouldProxy = backendRoutes.some(route =>
-                url === route || (route.endsWith('/') && url.startsWith(route))
-            );
-            if (shouldProxy) {
-                finalUrl = API_BASE + url;
-            }
+      const isProductosAPI = url === '/api/productos' || url.startsWith('/api/productos?');
+      if (isProductosAPI) {
+        finalUrl = url;
+      } else {
+        const shouldProxy = backendRoutes.some(route =>
+          url === route || (route.endsWith('/') && url.startsWith(route))
+        );
+        if (shouldProxy) {
+          finalUrl = API_BASE + url;
         }
+      }
     }
 
     // Cabeceras fijas
@@ -92,11 +71,6 @@
       options.headers['Authorization'] = `Bearer ${window.adminToken}`;
     }
     
-    // CSRF (si existe)
-    if (window.modoAdmin && window.CSRF_TOKEN) {
-      options.headers['X-CSRF-Token'] = window.CSRF_TOKEN;
-    }
-    
     // No enviamos cookies porque usamos JWT
     options.credentials = 'omit';
     
@@ -105,11 +79,9 @@
 
   if (window.modoAdmin && !window.adminScriptLoaded) {
     window.adminScriptLoaded = true;
-    loadCSRFToken().then(() => {
-        const script = document.createElement('script');
-        script.src = 'static/js/admin.js';
-        script.defer = true;
-        document.head.appendChild(script);
-    });
+    const script = document.createElement('script');
+    script.src = 'static/js/admin.js';
+    script.defer = true;
+    document.head.appendChild(script);
   }
 })();
