@@ -13,7 +13,6 @@ let pasoActual = 1;
 let envioCalculado = false;
 let resizeTimer;  
 
-// Verificar si ya hay sesión de admin activa
 const adminToken = sessionStorage.getItem('adminToken');
 if (adminToken) {
     window.modoAdmin = true;
