@@ -179,55 +179,52 @@ function mostrarSkeletons() {
 
 mostrarSkeletons();
 
-fetch(urlProductos)
-  .then(r => {
-    if (!r.ok) throw new Error("HTTP " + r.status);
-    return r.json();
-  })
-  .then(data => {
-    const productos = data.productos || [];   // extraemos el array del objeto
-    const productosOrdenados = [...productos]; // copia para no mutar (opcional)
-  
+async function cargarTodosLosProductos() {
+  let todos = [];
+  let lastId = null;
+  let hayMas = true;
+  while (hayMas) {
+    let url = `/api/productos?limit=50`;
+    if (lastId) url += `&last_id=${encodeURIComponent(lastId)}`;
+    const resp = await fetch(url);
+    if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+    const data = await resp.json();
+    todos = todos.concat(data.productos || []);
+    lastId = data.next_last_id;
+    hayMas = !!lastId;
+  }
+  return todos;
+}
+
+mostrarSkeletons();
+cargarTodosLosProductos()
+  .then(productos => {
+    const productosOrdenados = [...productos];
     productosOrdenados.sort((a, b) => {
-      const stockA = (a.stock_por_talle && Object.values(a.stock_por_talle).some(v => v > 0)) || 
-                     (a.stock && a.stock > 0);
-      const stockB = (b.stock_por_talle && Object.values(b.stock_por_talle).some(v => v > 0)) || 
-                     (b.stock && b.stock > 0);
-      
+      const stockA = (a.stock_por_talle && Object.values(a.stock_por_talle).some(v => v > 0)) || (a.stock && a.stock > 0);
+      const stockB = (b.stock_por_talle && Object.values(b.stock_por_talle).some(v => v > 0)) || (b.stock && b.stock > 0);
       if (stockA && !stockB) return -1;
       if (!stockA && stockB) return 1;
-      
       return (a.precio || 0) - (b.precio || 0);
     });
-    
     window.todosLosProductos = productosOrdenados;
-
     const cont = document.getElementById("productos");
     const contGrupos = document.getElementById("panelGrupos");
     const contSub = document.getElementById("panelSubcategorias");
-
     if (!cont) return;
-
     const grupos = [...new Set(window.todosLosProductos.map(p => p.grupo).filter(Boolean))];
-
     if (contGrupos) {
-      contGrupos.innerHTML = ""; 
+      contGrupos.innerHTML = "";
       grupos.forEach(g => {
         const btn = document.createElement("button");
         btn.className = "btn-grupo";
         btn.textContent = g;
-        btn.addEventListener("click", (e) => {
-          mostrarGrupo(g, e);
-        });
+        btn.addEventListener("click", (e) => { mostrarGrupo(g, e); });
         contGrupos.appendChild(btn);
       });
     }
-
     const primerGrupo = grupos[0];
-    const subgruposPrimer = [...new Set(window.todosLosProductos
-      .filter(p => p.grupo === primerGrupo)
-      .map(p => p.subgrupo).filter(Boolean))];
-
+    const subgruposPrimer = [...new Set(window.todosLosProductos.filter(p => p.grupo === primerGrupo).map(p => p.subgrupo).filter(Boolean))];
     if (primerGrupo) {
       if (subgruposPrimer.length > 0) {
         filtrarSubcategoria(primerGrupo, subgruposPrimer[0]);
@@ -237,7 +234,7 @@ fetch(urlProductos)
     }
   })
   .catch(err => {
-    cargaCompleta = true;
+    console.error(err);
     const cont = document.getElementById("productos");
     if (cont) cont.innerHTML = "<p class='text-danger text-center'>Error al cargar productos. Intenta de nuevo.</p>";
   });
