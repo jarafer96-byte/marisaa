@@ -10,6 +10,7 @@
     '/ca/rotulos', '/ca/historial', '/ca/sucursales'
   ];
 
+  // Estas variables deben definirse antes de que se use el interceptor
   window.cliente = {
     email: "trigomarisaadriana@gmail.com",
     whatsapp: "https://wa.me/5492901602482",
@@ -18,6 +19,7 @@
   window.VENDOR_EMAIL = window.cliente.email;
   window.carrito = [];
 
+  // --- Token JWT (admin) ---
   const adminToken = sessionStorage.getItem('adminToken');
   const urlToken = new URLSearchParams(window.location.search).get('token');
   
@@ -42,7 +44,6 @@
   const originalFetch = window.fetch;
   window.fetch = function(url, options = {}) {
     options.headers = options.headers || {};
-    
     let finalUrl = url;
     const isRelative = !url.startsWith('http://') && !url.startsWith('https://');
     
@@ -52,10 +53,12 @@
                        url.startsWith('/img/');
       
       if (window.modoAdmin) {
+        // Admin: todas las rutas /api/ van al backend
         if (!isStatic && url.startsWith('/api/')) {
           finalUrl = API_BASE + url;
         }
       } else {
+        // Público: solo rutas en backendRoutes
         const shouldProxy = backendRoutes.some(route =>
           url === route || (route.endsWith('/') && url.startsWith(route))
         );
@@ -68,18 +71,14 @@
     if (window.VENDOR_EMAIL) {
       options.headers['X-Vendor-Email'] = window.VENDOR_EMAIL;
     }
-    
-    // Token JWT si estamos en modo admin
     if (window.modoAdmin && window.adminToken) {
       options.headers['Authorization'] = `Bearer ${window.adminToken}`;
     }
-    
-    // No enviamos cookies porque usamos JWT
     options.credentials = 'omit';
-    
     return originalFetch(finalUrl, options);
   };
 
+  // Carga de admin.js si es necesario
   if (window.modoAdmin && !window.adminScriptLoaded) {
     window.adminScriptLoaded = true;
     const script = document.createElement('script');
