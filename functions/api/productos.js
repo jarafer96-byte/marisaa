@@ -8,8 +8,14 @@ export async function onRequest(context) {
     return context.next();
   }
 
-  // ⭐ PURGA DE CACHÉ DEL WORKER
+  // ⭐ PURGA DE CACHÉ DEL WORKER (protegida con token)
   if (request.headers.get('X-Purge-Cache') === 'true') {
+    const expectedToken = env.PURGE_SECRET;
+    const receivedToken = request.headers.get('X-Purge-Token');
+    if (!expectedToken || receivedToken !== expectedToken) {
+      console.warn('Purge request unauthorized or missing token');
+      return new Response('Unauthorized', { status: 403 });
+    }
     const vendorEmail = request.headers.get('X-Vendor-Email') || 'default';
     const cacheUrl = new URL(url);
     cacheUrl.searchParams.delete('_');
